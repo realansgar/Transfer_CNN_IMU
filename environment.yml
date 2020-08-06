@@ -1,0 +1,13 @@
+name: transfer_cnn_imu
+channels:
+  - defaults
+dependencies:
+  - cudatoolkit=10.2
+  - python=3.8
+  - pytorch
+  - autopep8
+  - ipykernel
+  - tensorboard
+  - pandas
+prefix: /home/oskar/anaconda3/envs/transfer_cnn_imu
+
