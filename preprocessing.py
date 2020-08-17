@@ -69,7 +69,7 @@ def downsample_data(data, current_freq, target_freq):
 def compute_min_max_json(data_column_index, filepath):
   print("computing min_max.json ...")
   min_list, max_list = np.PINF, np.NINF
-  for data in preprocess_PAMAP2():
+  for data in preprocess_PAMAP2(normalize=False):
     min_list_cand, max_list_cand = np.amin(data[:,data_column_index:], axis=0), np.amax(data[:,data_column_index:], axis=0)
     min_list, max_list = np.minimum(min_list, min_list_cand), np.maximum(max_list, max_list_cand)
   min_max_dict = {"min_list": list(min_list), "max_list": list(max_list)}
@@ -78,7 +78,7 @@ def compute_min_max_json(data_column_index, filepath):
     print(f"saved {filepath}")
 
 
-def preprocess_PAMAP2(normalize=False, write=False):
+def preprocess_PAMAP2(normalize=True, write=False):
   for filepath in PAMAP2_FILEPATHS:
     print(f"processing {filepath} ...")
     data = np.loadtxt(filepath)                             
@@ -99,7 +99,7 @@ def preprocess_PAMAP2(normalize=False, write=False):
 
 
 if __name__ == "__main__":
-  parser = ArgumentParser(description="Preprocess a dataset according to config.py and min_max.json")
+  parser = ArgumentParser(description="Preprocess a dataset according to config.py and min_max.json and saves it to disk.")
   parser.add_argument("dataset", choices=["PAMAP2"])
   parser.add_argument("--min_max", help="only computes the min_max.json file", action="store_true")
   parser.add_argument("--all", help="computes min_max.json and then preprocesses", action="store_true")
@@ -116,5 +116,5 @@ if __name__ == "__main__":
     quit()
   
   preprocess_func = locals_dict[f"preprocess_{args.dataset}"]
-  for data in preprocess_func(True, True):
+  for data in preprocess_func(write=True):
     pass
