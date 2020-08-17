@@ -70,7 +70,7 @@ def compute_min_max_json(data_column_index, filepath):
   print("computing min_max.json ...")
   min_list, max_list = np.PINF, np.NINF
   for data in preprocess_PAMAP2():
-    min_list_cand, max_list_cand = np.min(data[:,data_column_index:], 0), np.max(data[:,data_column_index:], 0)
+    min_list_cand, max_list_cand = np.amin(data[:,data_column_index:], axis=0), np.amax(data[:,data_column_index:], axis=0)
     min_list, max_list = np.minimum(min_list, min_list_cand), np.maximum(max_list, max_list_cand)
   min_max_dict = {"min_list": list(min_list), "max_list": list(max_list)}
   with open(filepath, "w") as min_max_json:
@@ -84,7 +84,7 @@ def preprocess_PAMAP2(normalize=False, write=False):
     data = np.loadtxt(filepath)                             
     data = np.delete(data, np.invert(PAMAP2_COLUMN_MASK), axis=1)
     data = delete_labels(data, PAMAP2_LABEL_MASK, PAMAP2_LABEL_COLUMN_INDEX)
-
+    data = downsample_data(data, PAMAP2_CURRENT_FREQUENCY, PAMAP2_TARGET_FREQUENCY)
     data = remap_labels(data, PAMAP2_LABEL_REMAPPING, PAMAP2_LABEL_COLUMN_INDEX)
     data[np.isnan(data)] = 0
     if normalize:
