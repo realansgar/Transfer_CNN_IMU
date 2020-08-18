@@ -9,27 +9,28 @@ import preprocessing
 from config import *
 
 
-def process_batch(batch, net, criterion, optimizer):
+def process_batch(batch, net, criterion, optimizer=None):
   data_batch, label_batch = data
   if USE_CUDA:
     data_batch = data_batch.cuda()
     label_batch = label_batch.cuda()
       
   # forward and backward pass
-  optimizer.zero_grad()
+  if optimizer is not None:
+    optimizer.zero_grad()
   out_batch = net(data_batch)
   loss = criterion(out_batch, label_batch)
-  loss.backward()
-  optimizer.step()
+  if optimizer is not None:
+    loss.backward()
+    optimizer.step()
 
   return loss
-
-USE_CUDA = torch.cuda.is_available()
 
 # set flags / seeds
 torch.backends.cudnn.benchmark = True
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
+USE_CUDA = torch.cuda.is_available()
 
 if __name__ == '__main__':    
   train_dataset = HARWindows(PAMAP2_TRAIN_SET_FILEPATH)
@@ -74,7 +75,7 @@ if __name__ == '__main__':
       loss_acc = 0
       for i, data in pbar:
         start_time = time.time()
-        loss = process_batch(data, net, criterion, optimizer)
+        loss = process_batch(data, net, criterion)
         loss_acc += loss.item()
         process_time = time.time() - start_time
         pbar.set_description(f"Elapsed time: {process_time:.3f}s, loss: {loss.item()}, epoch: {epoch}/{PAMAP2_EPOCHS}:")
