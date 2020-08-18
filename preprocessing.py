@@ -112,8 +112,14 @@ def build_set_PAMAP2(filepath):
   print(f"generating windows from {filepath}")
   data = np.load(filepath)
   data_x, data_y = split_data(data, PAMAP2_DATA_COLUMN_INDEX, PAMAP2_LABEL_COLUMN_INDEX)
+  data_y = data_y.astype(int)
+
   data_x_windows = sliding_window(data_x, (PAMAP2_WINDOW_SIZE, data_x.shape[1]), (PAMAP2_STEP_SIZE, 1))
+
   data_y_windows = sliding_window(data_y, PAMAP2_WINDOW_SIZE, PAMAP2_STEP_SIZE)
+  data_y_windows = [np.argmax(np.bincount(window, minlength=NUM_CLASSES)) for window in data_y_windows]
+  data_y_windows = np.array(data_y_windows)
+
   return data_x_windows, data_y_windows
 
 def build_train_val_test_set_PAMAP2():
@@ -126,7 +132,7 @@ def build_train_val_test_set_PAMAP2():
     x_train_set.append(x_windows)
     y_train_set.append(y_windows)
   x_train_set, y_train_set = np.concatenate(x_train_set, axis=0), np.concatenate(y_train_set, axis=0)
-  np.savez(PAMAP2_TRAIN_SET_FILEPATH, x_train_set=x_train_set, y_train_set=y_train_set)
+  np.savez(PAMAP2_TRAIN_SET_FILEPATH, data_x=x_train_set, data_y=y_train_set)
   print(f"saved train_set to {PAMAP2_TRAIN_SET_FILEPATH}")
 
   print("builing val_set")
@@ -135,7 +141,7 @@ def build_train_val_test_set_PAMAP2():
     x_val_set.append(x_windows)
     y_val_set.append(y_windows)
   x_val_set, y_val_set = np.concatenate(x_val_set, axis=0), np.concatenate(y_val_set, axis=0)
-  np.savez(PAMAP2_VAL_SET_FILEPATH, x_val_set=x_val_set, y_val_set=y_val_set)
+  np.savez(PAMAP2_VAL_SET_FILEPATH, data_x=x_val_set, data_y=y_val_set)
   print(f"saved val_set to {PAMAP2_VAL_SET_FILEPATH}")
 
   print("building test_set")
@@ -144,7 +150,7 @@ def build_train_val_test_set_PAMAP2():
     x_test_set.append(x_windows)
     y_test_set.append(y_windows)
   x_test_set, y_test_set = np.concatenate(x_test_set, axis=0), np.concatenate(y_test_set, axis=0)
-  np.savez(PAMAP2_TEST_SET_FILEPATH, x_test_set=x_test_set, y_test_set=y_test_set)
+  np.savez(PAMAP2_TEST_SET_FILEPATH, data_x=x_test_set, data_y=y_test_set)
   print(f"saved test_set to {PAMAP2_TEST_SET_FILEPATH}")
 
 
