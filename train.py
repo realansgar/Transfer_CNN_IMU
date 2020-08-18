@@ -11,7 +11,7 @@ from config import *
 
 def process_batch(batch, net, criterion, optimizer):
   data_batch, label_batch = data
-  if use_cuda:
+  if USE_CUDA:
     data_batch = data_batch.cuda()
     label_batch = label_batch.cuda()
       
@@ -24,6 +24,7 @@ def process_batch(batch, net, criterion, optimizer):
 
   return loss
 
+USE_CUDA = torch.cuda.is_available()
 
 # set flags / seeds
 torch.backends.cudnn.benchmark = True
@@ -43,8 +44,7 @@ if __name__ == '__main__':
   net = SimpleCNN()
   criterion = nn.CrossEntropyLoss(weight=class_weights)
   
-  use_cuda = torch.cuda.is_available()
-  if use_cuda:
+  if USE_CUDA:
     net = net.cuda()
   
   optimizer = optim.RMSprop(net.parameters(), lr=LEARNING_RATE, alpha=RMS_DECAY)
