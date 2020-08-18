@@ -40,13 +40,14 @@ if __name__ == '__main__':
   val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
   test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
   
-  class_weights = torch.ones(NUM_CLASSES)                                         # TODO weight classes by appearance in dataset
   net = SimpleCNN()
-  criterion = nn.CrossEntropyLoss(weight=class_weights)
+  class_weights = torch.ones(NUM_CLASSES)                                         # TODO weight classes by appearance in dataset
   
   if USE_CUDA:
     net = net.cuda()
-  
+    class_weights = class_weights.cuda()
+
+  criterion = nn.CrossEntropyLoss(weight=class_weights)
   optimizer = optim.RMSprop(net.parameters(), lr=LEARNING_RATE, alpha=RMS_DECAY)
   
   # typically we use tensorboardX to keep track of experiments
