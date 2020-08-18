@@ -9,12 +9,12 @@ KERNEL_LENGTH = 5
 POOLING_LENGTH = 2
 NUM_KERNELS = 64
 
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.001
 RMS_DECAY = 0.95
 
 MODELS_BASEPATH = "models/"
 
-DATASETS_BASEPATH = "/home/oskar/Development/Transfer_CNN_IMU/datasets/"
+DATASETS_BASEPATH = "/data/ozeino/"
 
 PAMAP2_BASEPATH = "PAMAP2_Dataset/Protocol/"
 PAMAP2_FILENAMES = [f"subject10{i}.dat" for i in range(1,10)]
