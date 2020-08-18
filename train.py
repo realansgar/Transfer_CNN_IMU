@@ -79,4 +79,4 @@ if __name__ == '__main__':
         pbar.set_description(f"Elapsed time: {process_time:.3f}s, loss: {loss.item()}, epoch: {epoch}/{PAMAP2_EPOCHS}:")
       print(f"Epoch {epoch}/{PAMAP2_EPOCHS} validation loss: total: {loss_acc}, mean: {loss_acc / len(val_dataloader)}")
 
-  torch.save(net.state_dict(), MODELS_BASEPATH + "first_model.dat")
+  torch.save(net.state_dict(), MODELS_BASEPATH + "first_model.pt")
