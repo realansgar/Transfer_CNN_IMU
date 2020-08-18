@@ -3,6 +3,7 @@ from torch.nn import functional as F
 import numpy as np
 from config import *
 
+
 def compute_linear_feature_size(layers):
   feature_size = [1, WINDOW_SIZE, NUM_SENSOR_CHANNELS]
   for layer in layers:
@@ -14,11 +15,9 @@ def compute_linear_feature_size(layers):
   return np.prod(feature_size)
 
 
-
 class SimpleCNN(nn.Module):
   def __init__(self):
     super().__init__()
-    self.is_train = False
 
     conv_layers = [nn.Conv1d(in_channels=1, out_channels=NUM_KERNELS, kernel_size=(KERNEL_LENGTH, 1))]
     conv_layers += [nn.ReLU()]
@@ -42,11 +41,10 @@ class SimpleCNN(nn.Module):
     fc_layers += [nn.Linear(in_features=512, out_features=NUM_CLASSES)]
     self.fc_net = nn.Sequential(*fc_layers)
 
-    
   def forward(self, x):
     x = self.conv_net(x)
     x = x.view(-1, self.linear_feature_size)
     x = self.fc_net(x)
-    if not self.is_train:
+    if not self.training:
       x = F.softmax(x, dim=1)
     return x
