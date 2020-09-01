@@ -114,10 +114,10 @@ def build_set_PAMAP2(filepath):
   data_x, data_y = split_data(data, PAMAP2_DATA_COLUMN_INDEX, PAMAP2_LABEL_COLUMN_INDEX)
   data_y = data_y.astype(int)
 
-  data_x_windows = sliding_window(data_x, (PAMAP2_WINDOW_SIZE, data_x.shape[1]), (PAMAP2_STEP_SIZE, 1))
+  data_x_windows = sliding_window(data_x, (PAMAP2["WINDOW_SIZE"], data_x.shape[1]), (PAMAP2["STEP_SIZE"], 1))
 
-  data_y_windows = sliding_window(data_y, PAMAP2_WINDOW_SIZE, PAMAP2_STEP_SIZE)
-  data_y_windows = [np.argmax(np.bincount(window, minlength=NUM_CLASSES)) for window in data_y_windows]
+  data_y_windows = sliding_window(data_y, PAMAP2["WINDOW_SIZE"], PAMAP2["STEP_SIZE"])
+  data_y_windows = [np.argmax(np.bincount(window, minlength=PAMAP2["NUM_CLASSES"])) for window in data_y_windows]
   data_y_windows = np.array(data_y_windows)
 
   return data_x_windows, data_y_windows
