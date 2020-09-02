@@ -80,10 +80,17 @@ class CNN_IMU(nn.Module):
     self.combining_layers = nn.Sequential(*comb_layers)
   
   def forward(self, x):
-    x_imus = torch.split(x, self.NUM_IMUS, dim=3)
+    x_imus = torch.split(x, (self.NUM_SENSOR_CHANNELS // self.NUM_IMUS), dim=3)
     x = list(map(lambda imu_branch, x_imu: imu_branch(x_imu), self.imu_branches, x_imus))
     x = torch.cat(x, dim=1)
     x = self.combining_layers(x)
     if not self.training:
       x = F.softmax(x, dim=1)
     return x
+
+if __name__ == "__main__":
+  from torch.utils.tensorboard import SummaryWriter
+  net = CNN_IMU(PAMAP2)
+  wr = SummaryWriter(log_dir="runs")
+  wr.add_graph(net, torch.ones((10,1,100,27)))
+  wr.close()
