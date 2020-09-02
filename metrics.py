@@ -55,7 +55,7 @@ def class_accuracy(pred_y, data_y, num_classes):
   return (tp + tn) / (tp + tn + fp + fn)
 
 
-def accuracy(pred_y, data_y, num_classes, weighted=True):
+def accuracy(pred_y, data_y, num_classes, weighted=False):
   if weighted:
     class_weights = torch.bincount(data_y, minlength=num_classes) / float(len(data_y))
     class_weights.to(DEVICE)
@@ -68,7 +68,7 @@ def accuracy(pred_y, data_y, num_classes, weighted=True):
   return acc
 
 
-def f1_score(pred_y, data_y, num_classes, weighted=True):
+def f1_score(pred_y, data_y, num_classes, weighted=False):
   if weighted:
     class_weights = torch.bincount(data_y, minlength=num_classes) / float(len(data_y))
     class_weights.to(DEVICE)
@@ -81,3 +81,38 @@ def f1_score(pred_y, data_y, num_classes, weighted=True):
   f1 = torch.sum(class_f1)
   
   return f1
+
+
+def evaluate_net(net, criterion, batch, num_classes):
+  data_x, data_y = batch
+  data_x.to(DEVICE)
+  data_y.to(DEVICE)
+  net.to(DEVICE)
+
+  net.eval()
+  with torch.no_grad():
+    prob_y = net(data_x)
+    loss = criterion(prob_y, data_y)
+
+    pred_y = torch.argmax(prob_y, dim=1)
+
+    precision, recall = precision_recall(pred_y, data_y, num_classes)
+    weighted_precision, weighted_recall = precision_recall(pred_y, data_y, num_classes, weighted=True)
+    micro_acc = torch.sum(pred_y == data_y) / len(data_y)
+    acc = accuracy(pred_y, data_y, num_classes)
+    weighted_acc = accuracy(pred_y, data_y, num_classes, weighted=True)
+    f1 = f1_score(pred_y, data_y, num_classes)
+    weighted_f1 = f1_score(pred_y, data_y, num_classes, weighted=True)
+
+    return {
+      "precision": precision,
+      "weighted_precision": weighted_precision,
+      "recall": recall,
+      "weighted_recall": weighted_recall,
+      "micro_accuracy": micro_acc,
+      "accuracy": acc,
+      "weighted_accuracy": weighted_acc,
+      "f1": f1,
+      "weighted_f1": weighted_f1
+    }
+    
