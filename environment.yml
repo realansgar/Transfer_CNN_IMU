@@ -9,5 +9,7 @@ dependencies:
   - autopep8
   - python=3.8
   - cudatoolkit=10.1
+  - pandas
+  - matplotlib
 prefix: /home/oskar/anaconda3/envs/transfer_cnn_imu
 
