@@ -11,6 +11,8 @@ MODELS_BASEPATH = "models/"
 LOGS_BASEPATH = "logs/"
 DATASETS_BASEPATH = "/data/ozeino/"
 
+EVAL_FREQUENCY = 100
+
 # PAMAP2
 
 ## PAMAP2 Filepaths
@@ -59,6 +61,8 @@ PAMAP2_LABEL_NAMES = {0: "rope jumping",
 ## PAMAP2 
 
 PAMAP2 = {
+  "NAME": "PAMAP2 - CNN_IMU",
+  "MODEL": "CNN_IMU",
   "NUM_SENSOR_CHANNELS": 27,
   "NUM_CLASSES": 12,
   "WINDOW_SIZE": 100,
@@ -72,5 +76,5 @@ PAMAP2 = {
   "POOLING_LENGTH": 2,
   "DROPOUT": 0.5,
   "LEARNING_RATE": 0.001,
-  "RMS_DECAY": 0.95,
+  "RMS_DECAY": 0.95
 }

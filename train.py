@@ -1,15 +1,19 @@
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-import time
+from datetime import datetime
+import pandas as pd
 from tqdm import tqdm
 from CNN import SimpleCNN
 from datasets import HARWindows
 import preprocessing
-from config import DEVICE
+import metrics
+from config import DEVICE, MODELS_BASEPATH, LOGS_BASEPATH, EVAL_FREQUENCY
+
 
 class Trainer():
   def __init__(self, config_dict):
+    self.config_dict = config_dict
     list(map(lambda item: setattr(self, *item), config_dict.items()))
 
   def process_batch(self, batch, optimize=True):
@@ -28,7 +32,7 @@ class Trainer():
 
     return loss
 
-  def train(self):
+  def train(self, save=True):
     train_dataset = HARWindows(self.TRAIN_SET_FILEPATH)
     val_dataset = HARWindows(self.VAL_SET_FILEPATH)
     test_dataset = HARWindows(self.TEST_SET_FILEPATH)
@@ -37,7 +41,7 @@ class Trainer():
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=True)
     
-    writer = SummaryWriter(self.LOGS_BASEPATH)
+    writer = SummaryWriter(LOGS_BASEPATH)
 
     self.net = SimpleCNN().to(DEVICE)
     class_weights = torch.ones(self.NUM_CLASSES, device=DEVICE)                                  # TODO weight classes by appearance in dataset
@@ -48,32 +52,40 @@ class Trainer():
     # typically we use tensorboardX to keep track of experiments
     # writer = SummaryWriter(...)
     
+    best_weights = None
+    best_val_loss = float("inf")
+    train_eval = []
+    val_eval = []
+
     for epoch in range(self.EPOCHS):
-      self.net.train()
+      train_data_pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
+      train_eval_epoch = {}
+      val_eval_epoch = {}
+      for i, data in train_data_pbar:
+        self.net.train()
+        self.process_batch(data)
+        train_data_pbar.set_description(f"epoch: {epoch}/{self.EPOCHS}, training:")
 
-      pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
-      for i, data in pbar:
-        start_time = time.time()
-        loss = self.process_batch(data)
+        if i % EVAL_FREQUENCY == (EVAL_FREQUENCY - 1):
+          train_data_pbar.set_description(f"epoch: {epoch}/{self.EPOCHS}, validating:")
+          train_eval_row = metrics.evaluate_net(net, criterion, data, self.NUM_CLASSES)
+          val_eval_row = metrics.evaluate_net(net, criterion, next(val_dataloader), self.NUM_CLASSES)
+          train_eval_epoch = {col: (train_eval_epoch[col] if col in train_eval_epoch else []) + [val] for (col, val) in train_eval_row.items()}
+          val_eval_epoch = {col: (val_eval_epoch[col] if col in val_eval_epoch else []) + [val] for (col, val) in val_eval_row.items()}
 
-        # udpate tensorboardX
-        #writer.add_scalar(..., n_iter)
+          for col in train_eval_row:
+            writer.add_scalars(col, {"train": train_eval_row[col], "validation": val_eval_row[col]})
 
-        process_time = time.time() - start_time
-        pbar.set_description(f"loss: {loss.item()}, epoch: {epoch}/{self.EPOCHS}:")
-            
-      # validation loss
-      self.net.eval()
-      with torch.no_grad():
-        pbar = tqdm(enumerate(val_dataloader), total=len(val_dataloader))
-        loss_acc = 0
-        for i, data in pbar:
-          start_time = time.time()
-          loss = self.process_batch(data, optimize=False)
-          loss_acc += loss.item()
-          process_time = time.time() - start_time
-          pbar.set_description(f"loss: {loss.item()}, epoch: {epoch}/{self.EPOCHS}:")
-        print(f"Epoch {epoch}/{self.EPOCHS} validation loss: total: {loss_acc}, mean: {loss_acc / len(val_dataloader)}")
+          if val_eval_row["loss"] < best_val_loss:
+            best_val_loss = val_eval_row["loss"]
+            best_weights = self.net.state_dict()
 
-  def evaluate(self, dataset):
-    pass  
+      train_eval += [train_eval_epoch]      
+      val_eval += [val_eval_epoch]
+
+    writer.close()
+    now = datetime.now()
+    nowstr = now.strftime("%d.%m.%y %H:%M:%S")
+    torch.save(best_weights, f"{MODELS_BASEPATH}{self.NAME}_{nowstr}.pt")
+    torch.save(train_eval, f"{LOGS_BASEPATH}{self.NAME}_train_{nowstr}.pt")
+    torch.save(val_eval, f"{LOGS_BASEPATH}{self.NAME}_val_{nowstr}.pt")
