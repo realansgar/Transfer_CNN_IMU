@@ -1,7 +1,7 @@
 import torch
 
 if torch.cuda.is_available():
-  DEVICE = torch.device("cuda")
+  DEVICE = torch.device("cuda:2")
 else:
   DEVICE = torch.device("cpu")
 
