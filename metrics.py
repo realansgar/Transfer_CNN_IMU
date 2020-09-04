@@ -98,7 +98,7 @@ def evaluate_net(net, criterion, batch, num_classes):
 
     precision, recall = precision_recall(pred_y, data_y, num_classes)
     weighted_precision, weighted_recall = precision_recall(pred_y, data_y, num_classes, weighted=True)
-    micro_acc = torch.sum(pred_y == data_y) / len(data_y)
+    micro_acc = torch.sum(pred_y == data_y) / float(len(data_y))
     acc = accuracy(pred_y, data_y, num_classes)
     weighted_acc = accuracy(pred_y, data_y, num_classes, weighted=True)
     f1 = f1_score(pred_y, data_y, num_classes)
