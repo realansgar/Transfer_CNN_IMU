@@ -43,13 +43,9 @@ class Trainer():
     
     Selected_CNN = getattr(CNN, self.MODEL)
     self.net = Selected_CNN().to(DEVICE)
-    class_weights = torch.ones(self.NUM_CLASSES, device=DEVICE)                                  # TODO weight classes by appearance in dataset
 
-    self.criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
+    self.criterion = torch.nn.CrossEntropyLoss()
     self.optimizer = torch.optim.RMSprop(self.net.parameters(), lr=self.LEARNING_RATE, alpha=self.RMS_DECAY)
-    
-    # typically we use tensorboardX to keep track of experiments
-    # writer = SummaryWriter(...)
     
     writer = SummaryWriter(LOGS_BASEPATH)
     best_weights = None
@@ -87,7 +83,9 @@ class Trainer():
     if save:
       now = datetime.now()
       nowstr = now.strftime("%d.%m.%y %H:%M:%S")
-      torch.save(best_weights, f"{MODELS_BASEPATH}{self.NAME}_{nowstr}.{self.MODEL}.pt")
+      best_net = Selected_CNN()
+      best_net.load_state_dict(best_weights)
+      torch.save(best_net, f"{MODELS_BASEPATH}{self.NAME}_{nowstr}.{self.MODEL}.pt")
       torch.save(train_eval, f"{LOGS_BASEPATH}{self.NAME}_train_{nowstr}.{self.MODEL}.pt")
       torch.save(val_eval, f"{LOGS_BASEPATH}{self.NAME}_val_{nowstr}.{self.MODEL}.pt")
     return self.net
