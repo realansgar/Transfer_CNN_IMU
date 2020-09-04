@@ -142,4 +142,5 @@ cython_debug/
 
 # project specific
 datasets/
+logs/
 models/

@@ -42,7 +42,7 @@ class Trainer():
     test_dataloader = DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=True)
     
     Selected_CNN = getattr(CNN, self.MODEL)
-    self.net = Selected_CNN().to(DEVICE)
+    self.net = Selected_CNN(self.config_dict).to(DEVICE)
 
     self.criterion = torch.nn.CrossEntropyLoss()
     self.optimizer = torch.optim.RMSprop(self.net.parameters(), lr=self.LEARNING_RATE, alpha=self.RMS_DECAY)
