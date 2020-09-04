@@ -105,6 +105,7 @@ def evaluate_net(net, criterion, batch, num_classes):
     weighted_f1 = f1_score(pred_y, data_y, num_classes, weighted=True)
 
     return {
+      "loss": loss,
       "precision": precision,
       "weighted_precision": weighted_precision,
       "recall": recall,

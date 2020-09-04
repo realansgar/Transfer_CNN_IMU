@@ -64,7 +64,7 @@ class Trainer():
         if i % EVAL_FREQUENCY == (EVAL_FREQUENCY - 1):
           train_data_pbar.set_description(f"epoch: {epoch}/{self.EPOCHS}, validating:")
           train_eval_row = metrics.evaluate_net(self.net, self.criterion, data, self.NUM_CLASSES)
-          val_eval_row = metrics.evaluate_net(self.net, self.criterion, next(val_dataloader), self.NUM_CLASSES)
+          val_eval_row = metrics.evaluate_net(self.net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
           train_eval_epoch = {col: (train_eval_epoch[col] if col in train_eval_epoch else []) + [val] for (col, val) in train_eval_row.items()}
           val_eval_epoch = {col: (val_eval_epoch[col] if col in val_eval_epoch else []) + [val] for (col, val) in val_eval_row.items()}
 
