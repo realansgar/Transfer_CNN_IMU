@@ -2,7 +2,6 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
-import pandas as pd
 from tqdm import tqdm
 import CNN
 from datasets import HARWindows
