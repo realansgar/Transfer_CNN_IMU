@@ -82,7 +82,7 @@ class Trainer():
     if save:
       now = datetime.now()
       nowstr = now.strftime("%d.%m.%y %H:%M:%S")
-      best_net = Selected_CNN()
+      best_net = Selected_CNN(self.config_dict)
       best_net.load_state_dict(best_weights)
       torch.save(best_net, f"{MODELS_BASEPATH}{self.NAME}_{nowstr}.{self.MODEL}.pt")
       torch.save(train_eval, f"{LOGS_BASEPATH}{self.NAME}_train_{nowstr}.{self.MODEL}.pt")
