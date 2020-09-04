@@ -4,7 +4,7 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 import pandas as pd
 from tqdm import tqdm
-from CNN import SimpleCNN
+import CNN
 from datasets import HARWindows
 import preprocessing
 import metrics
@@ -41,9 +41,8 @@ class Trainer():
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=True)
     
-    writer = SummaryWriter(LOGS_BASEPATH)
-
-    self.net = SimpleCNN().to(DEVICE)
+    Selected_CNN = getattr(CNN, self.MODEL)
+    self.net = Selected_CNN().to(DEVICE)
     class_weights = torch.ones(self.NUM_CLASSES, device=DEVICE)                                  # TODO weight classes by appearance in dataset
 
     self.criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
@@ -52,6 +51,7 @@ class Trainer():
     # typically we use tensorboardX to keep track of experiments
     # writer = SummaryWriter(...)
     
+    writer = SummaryWriter(LOGS_BASEPATH)
     best_weights = None
     best_val_loss = float("inf")
     train_eval = []
@@ -84,8 +84,10 @@ class Trainer():
       val_eval += [val_eval_epoch]
 
     writer.close()
-    now = datetime.now()
-    nowstr = now.strftime("%d.%m.%y %H:%M:%S")
-    torch.save(best_weights, f"{MODELS_BASEPATH}{self.NAME}_{nowstr}.pt")
-    torch.save(train_eval, f"{LOGS_BASEPATH}{self.NAME}_train_{nowstr}.pt")
-    torch.save(val_eval, f"{LOGS_BASEPATH}{self.NAME}_val_{nowstr}.pt")
+    if save:
+      now = datetime.now()
+      nowstr = now.strftime("%d.%m.%y %H:%M:%S")
+      torch.save(best_weights, f"{MODELS_BASEPATH}{self.NAME}_{nowstr}.{self.MODEL}.pt")
+      torch.save(train_eval, f"{LOGS_BASEPATH}{self.NAME}_train_{nowstr}.{self.MODEL}.pt")
+      torch.save(val_eval, f"{LOGS_BASEPATH}{self.NAME}_val_{nowstr}.{self.MODEL}.pt")
+    return self.net
