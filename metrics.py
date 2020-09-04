@@ -38,7 +38,7 @@ def class_precision_recall(pred_y, data_y, num_classes):
 def precision_recall(pred_y, data_y, num_classes, weighted=True):
   if weighted:
     class_weights = torch.bincount(data_y, minlength=num_classes) / float(len(data_y))
-    class_weights.to(DEVICE)
+    class_weights = class_weights.to(DEVICE)
   else:
     class_weights = num_classes ** -1
 
@@ -58,7 +58,7 @@ def class_accuracy(pred_y, data_y, num_classes):
 def accuracy(pred_y, data_y, num_classes, weighted=False):
   if weighted:
     class_weights = torch.bincount(data_y, minlength=num_classes) / float(len(data_y))
-    class_weights.to(DEVICE)
+    class_weights = class_weights.to(DEVICE)
   else:
     class_weights = num_classes ** -1
   
@@ -71,7 +71,7 @@ def accuracy(pred_y, data_y, num_classes, weighted=False):
 def f1_score(pred_y, data_y, num_classes, weighted=False):
   if weighted:
     class_weights = torch.bincount(data_y, minlength=num_classes) / float(len(data_y))
-    class_weights.to(DEVICE)
+    class_weights = class_weights.to(DEVICE)
   else:
     class_weights = num_classes ** -1
 
@@ -85,9 +85,9 @@ def f1_score(pred_y, data_y, num_classes, weighted=False):
 
 def evaluate_net(net, criterion, batch, num_classes):
   data_x, data_y = batch
-  data_x.to(DEVICE)
-  data_y.to(DEVICE)
-  net.to(DEVICE)
+  data_x = data_x.to(DEVICE)
+  data_y = data_y.to(DEVICE)
+  net = net.to(DEVICE)
 
   net.eval()
   with torch.no_grad():
