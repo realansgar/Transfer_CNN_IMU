@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
+import os
 from tqdm import tqdm
 import CNN
 from datasets import HARWindows
@@ -34,11 +35,9 @@ class Trainer():
   def train(self, save=True):
     train_dataset = HARWindows(self.TRAIN_SET_FILEPATH)
     val_dataset = HARWindows(self.VAL_SET_FILEPATH)
-    test_dataset = HARWindows(self.TEST_SET_FILEPATH)
 
     train_dataloader = DataLoader(train_dataset, batch_size=self.BATCH_SIZE, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=True)
     
     Selected_CNN = getattr(CNN, self.MODEL)
     self.net = Selected_CNN(self.config_dict).to(DEVICE)
@@ -69,7 +68,7 @@ class Trainer():
           val_eval_epoch = {col: (val_eval_epoch[col] if col in val_eval_epoch else []) + [val] for (col, val) in val_eval_row.items()}
 
           for col in train_eval_row:
-            writer.add_scalars(col, {"train": train_eval_row[col], "validation": val_eval_row[col]})
+            writer.add_scalars(col, {"train": train_eval_row[col], "validation": val_eval_row[col]}, i + epoch + len(train_dataloader))
 
           if val_eval_row["loss"] < best_val_loss:
             best_val_loss = val_eval_row["loss"]
@@ -84,7 +83,9 @@ class Trainer():
       nowstr = now.strftime("%d.%m.%y %H:%M:%S")
       best_net = Selected_CNN(self.config_dict)
       best_net.load_state_dict(best_weights)
-      torch.save(best_net, f"{MODELS_BASEPATH}{self.NAME}_{nowstr}.{self.MODEL}.pt")
-      torch.save(train_eval, f"{LOGS_BASEPATH}{self.NAME}_train_{nowstr}.{self.MODEL}.pt")
-      torch.save(val_eval, f"{LOGS_BASEPATH}{self.NAME}_val_{nowstr}.{self.MODEL}.pt")
+      filename = f"{self.NAME}_{nowstr}.{self.MODEL}.pt"
+      os.makedirs(MODELS_BASEPATH, exist_ok=True)
+      os.makedirs(LOGS_BASEPATH, exist_ok=True)
+      torch.save(best_net, MODELS_BASEPATH + filename)
+      torch.save({"train": train_eval, "val": val_eval}, LOGS_BASEPATH + filename)
     return self.net
