@@ -13,8 +13,8 @@ class HARWindows(Dataset):
     :param filepath: filepath to .npz file with "data_x" and "data_y" arrays
     """
     np_dataset = np.load(filepath)
-    self.data_x = torch.from_numpy(np_dataset["data_x"]).to(torch.float, device=DEVICE)
-    self.data_y = torch.from_numpy(np_dataset["data_y"]).to(torch.long, device=DEVICE)
+    self.data_x = torch.from_numpy(np_dataset["data_x"]).to(dtype=torch.float, device=DEVICE)
+    self.data_y = torch.from_numpy(np_dataset["data_y"]).to(dtype=torch.long, device=DEVICE)
     if len(self.data_x) != len(self.data_y):
       raise ValueError("invalid dataset")
     
