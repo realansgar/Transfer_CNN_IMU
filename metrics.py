@@ -106,13 +106,13 @@ def evaluate_net(net, criterion, batch, num_classes):
 
     return {
       "loss": loss,
+      "micro_accuracy": micro_acc,
+      "accuracy": acc,
+      "weighted_accuracy": weighted_acc,
       "precision": precision,
       "weighted_precision": weighted_precision,
       "recall": recall,
       "weighted_recall": weighted_recall,
-      "micro_accuracy": micro_acc,
-      "accuracy": acc,
-      "weighted_accuracy": weighted_acc,
       "f1": f1,
       "weighted_f1": weighted_f1
     }

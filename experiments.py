@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from train import Trainer
-from config import PAMAP2, LOGS_BASEPATH, DEVICE
+from config import PAMAP2, LOGS_BASEPATH, DEVICE, EVAL_FREQUENCY
 
 def plot(filename):
   eval_dict = torch.load(filename, map_location=DEVICE)
@@ -16,17 +16,25 @@ def plot(filename):
   axs = axs.flatten()
   for (i, key) in enumerate(train_eval):
     ax = axs[i]
-    ax.plot(range(len(train_eval[key])), train_eval[key], label="train")
-    ax.plot(range(len(val_eval[key])), val_eval[key], label="validation")
+    ax.plot(range(0, len(train_eval[key]) * EVAL_FREQUENCY, EVAL_FREQUENCY), train_eval[key], label="train")
+    ax.plot(range(0, len(val_eval[key]) * EVAL_FREQUENCY, EVAL_FREQUENCY), val_eval[key], label="validation")
     ax.set_xlabel("iterations")
     ax.set_ylabel(key)
     ax.set_title(key)
     ax.legend()
   title = os.path.basename(filename)
-  #fig.set_title(title)
-  fig.savefig(os.path.splitext(filename)[0] + ".pdf", bbox_inches='tight')
+  fig.set_size_inches(23.3, 16.5)
+  fig.tight_layout()
+  fig.savefig(os.path.splitext(filename)[0] + ".pdf", orientation="landscape", bbox_inches='tight')
 
 
 def pamap2_hyperparameters():
-  pamap2_trainer = Trainer(PAMAP2)
+  pamap2_cnn_imu_2 = PAMAP2.copy()
+  pamap2_trainer = Trainer(pamap2_cnn_imu_2)
+  pamap2_trainer.train()
+
+  pamap2_simple_cnn = pamap2_cnn_imu_2.copy()
+  pamap2_simple_cnn["NAME"] = "PAMAP2 - SimpleCNN"
+  pamap2_simple_cnn["MODEL"] = "SimpleCNN"
+  pamap2_trainer = Trainer(pamap2_cnn_imu_2)
   pamap2_trainer.train()
