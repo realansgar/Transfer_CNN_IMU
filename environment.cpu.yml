@@ -1,0 +1,14 @@
+name: transfer_cnn_imu
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - tensorboard
+  - pytorch
+  - cpuonly
+  - tqdm
+  - autopep8
+  - python=3.8
+  - matplotlib
+prefix: /home/oskar/anaconda3/envs/transfer_cnn_imu
+
