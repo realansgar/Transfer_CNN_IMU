@@ -6,7 +6,6 @@ import os
 from tqdm import tqdm
 import CNN
 from datasets import HARWindows
-import preprocessing
 import metrics
 from config import DEVICE, MODELS_BASEPATH, LOGS_BASEPATH, EVAL_FREQUENCY
 
@@ -15,15 +14,21 @@ class Trainer():
   def __init__(self, config_dict):
     self.config_dict = config_dict
     list(map(lambda item: setattr(self, *item), config_dict.items()))
+    if self.NOISE:
+      self.noise = torch.distributions.Normal(0, self.NOISE)
 
-  def process_batch(self, batch, optimize=True):
+  def process_batch(self, batch, optimize=True, noise=True):
     data_batch, label_batch = batch
     data_batch = data_batch.to(DEVICE)
     label_batch = label_batch.to(DEVICE)
-        
+
     # forward and backward pass
     if optimize:
       self.optimizer.zero_grad()
+    if noise:
+      added_noise = self.noise.sample(data_batch.shape)
+      added_noise = added_noise.to(DEVICE)
+      data_batch += added_noise
     out_batch = self.net(data_batch)
     loss = self.criterion(out_batch, label_batch)
     if optimize:
@@ -57,7 +62,7 @@ class Trainer():
       val_eval_epoch = {}
       for i, data in train_data_pbar:
         self.net.train()
-        self.process_batch(data)
+        self.process_batch(data, noise=self.NOISE)
         train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, training:")
 
         if i % EVAL_FREQUENCY == (EVAL_FREQUENCY - 1):
