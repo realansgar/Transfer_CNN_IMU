@@ -24,9 +24,9 @@ class CNN_IMU_Branch(nn.Module):
     self.convolutional_layers = nn.Sequential(*conv_layers)
 
     self.linear_feature_size = self.compute_linear_feature_size(conv_layers)
-    fc_layers = [nn.Linear(in_features=self.linear_feature_size, out_features=512)]
+    fc_layers = [nn.Dropout(self.DROPOUT)]
+    fc_layers += [nn.Linear(in_features=self.linear_feature_size, out_features=512)]
     fc_layers += [nn.ReLU()]
-    fc_layers += [nn.Dropout(self.DROPOUT)]
     self.fully_connected_layers = nn.Sequential(*fc_layers)
 
   def forward(self, x):
@@ -72,10 +72,10 @@ class CNN_IMU(nn.Module):
     self.imu_branches = nn.ModuleList()
     for i in range(self.NUM_IMUS):
       self.imu_branches.append(CNN_IMU_Branch(config_dict))
-    
-    comb_layers = [nn.Linear(in_features=512*self.NUM_IMUS, out_features=512)]
+
+    comb_layers = [nn.Dropout(self.DROPOUT)]
+    comb_layers += [nn.Linear(in_features=512*self.NUM_IMUS, out_features=512)]
     comb_layers += [nn.ReLU()] 
-    comb_layers += [nn.Dropout(self.DROPOUT)]
     comb_layers += [nn.Linear(in_features=512, out_features=self.NUM_CLASSES)]
     self.combining_layers = nn.Sequential(*comb_layers)
   
