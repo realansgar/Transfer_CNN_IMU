@@ -99,6 +99,36 @@ def build_set(filepath, config):
 
   return data_x_windows, data_y_windows
 
+def build_train_val_test_set(config):
+  x_train_set, x_val_set, x_test_set = [], [], []
+  y_train_set, y_val_set, y_test_set = [], [], []
+
+  print("building train_set")
+  for filepath in config["TRAIN_SET"]:
+    x_windows, y_windows = build_set(filepath, config)
+    x_train_set.append(x_windows)
+    y_train_set.append(y_windows)
+  x_train_set, y_train_set = np.concatenate(x_train_set, axis=0), np.concatenate(y_train_set, axis=0)
+  np.savez(config["TRAIN_SET_FILEPATH"], data_x=x_train_set, data_y=y_train_set)
+  print(f"saved train_set to {config['TRAIN_SET_FILEPATH']}")
+
+  print("builing val_set")
+  for filepath in config["VAL_SET"]:
+    x_windows, y_windows = build_set(filepath, config)
+    x_val_set.append(x_windows)
+    y_val_set.append(y_windows)
+  x_val_set, y_val_set = np.concatenate(x_val_set, axis=0), np.concatenate(y_val_set, axis=0)
+  np.savez(config["VAL_SET_FILEPATH"], data_x=x_val_set, data_y=y_val_set)
+  print(f"saved val_set to {config['VAL_SET_FILEPATH']}")
+
+  print("building test_set")
+  for filepath in config["TEST_SET"]:
+    x_windows, y_windows = build_set(filepath, config)
+    x_test_set.append(x_windows)
+    y_test_set.append(y_windows)
+  x_test_set, y_test_set = np.concatenate(x_test_set, axis=0), np.concatenate(y_test_set, axis=0)
+  np.savez(config["TEST_SET_FILEPATH"], data_x=x_test_set, data_y=y_test_set)
+  print(f"saved test_set to {config['TEST_SET_FILEPATH']}")
 
 def preprocess_OPPORTUNITY_LOCOMOTION(normalize=True, write=False):
   for filepath in OPPORTUNITY_LOCOMOTION_FILEPATHS:
@@ -136,37 +166,6 @@ def preprocess_PAMAP2(normalize=True, write=False):
       np.save(out_filepath, data)
       print(f"saved {out_filepath}")
     yield data
-
-def build_train_val_test_set(config):
-  x_train_set, x_val_set, x_test_set = [], [], []
-  y_train_set, y_val_set, y_test_set = [], [], []
-
-  print("building train_set")
-  for filepath in config["TRAIN_SET"]:
-    x_windows, y_windows = build_set(filepath, config)
-    x_train_set.append(x_windows)
-    y_train_set.append(y_windows)
-  x_train_set, y_train_set = np.concatenate(x_train_set, axis=0), np.concatenate(y_train_set, axis=0)
-  np.savez(config["TRAIN_SET_FILEPATH"], data_x=x_train_set, data_y=y_train_set)
-  print(f"saved train_set to {config['TRAIN_SET_FILEPATH']}")
-
-  print("builing val_set")
-  for filepath in config["VAL_SET"]:
-    x_windows, y_windows = build_set(filepath, config)
-    x_val_set.append(x_windows)
-    y_val_set.append(y_windows)
-  x_val_set, y_val_set = np.concatenate(x_val_set, axis=0), np.concatenate(y_val_set, axis=0)
-  np.savez(config["VAL_SET_FILEPATH"], data_x=x_val_set, data_y=y_val_set)
-  print(f"saved val_set to {config['VAL_SET_FILEPATH']}")
-
-  print("building test_set")
-  for filepath in config["TEST_SET"]:
-    x_windows, y_windows = build_set(filepath, config)
-    x_test_set.append(x_windows)
-    y_test_set.append(y_windows)
-  x_test_set, y_test_set = np.concatenate(x_test_set, axis=0), np.concatenate(y_test_set, axis=0)
-  np.savez(config["TEST_SET_FILEPATH"], data_x=x_test_set, data_y=y_test_set)
-  print(f"saved test_set to {config['TEST_SET_FILEPATH']}")
 
 
 if __name__ == "__main__":
