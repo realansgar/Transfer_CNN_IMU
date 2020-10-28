@@ -2,13 +2,12 @@ from torch import nn
 from torch.nn import functional as F
 import numpy as np
 from config import *
-from torch.utils.tensorboard import SummaryWriter
 
 
 class CNN_IMU_Branch(nn.Module):
-  def __init__(self, config_dict, is_simple=False):
+  def __init__(self, config, is_simple=False):
     super().__init__()
-    list(map(lambda item: setattr(self, *item), config_dict.items()))
+    list(map(lambda item: setattr(self, *item), config.items()))
     self.is_simple = is_simple
 
     conv_layers = [nn.Conv1d(in_channels=1, out_channels=self.NUM_KERNELS, kernel_size=(self.KERNEL_LENGTH, 1))]
@@ -48,11 +47,11 @@ class CNN_IMU_Branch(nn.Module):
 
 
 class SimpleCNN(nn.Module):
-  def __init__(self, config_dict):
+  def __init__(self, config):
     super().__init__()
-    list(map(lambda item: setattr(self, *item), config_dict.items()))
+    list(map(lambda item: setattr(self, *item), config.items()))
 
-    self.cnn_imu_branch = CNN_IMU_Branch(config_dict, is_simple=True)
+    self.cnn_imu_branch = CNN_IMU_Branch(config, is_simple=True)
 
     self.last_layer = nn.Linear(in_features=512, out_features=self.NUM_CLASSES)
   
@@ -65,13 +64,13 @@ class SimpleCNN(nn.Module):
   
 
 class CNN_IMU(nn.Module):
-  def __init__(self, config_dict):
+  def __init__(self, config):
     super().__init__()
-    list(map(lambda item: setattr(self, *item), config_dict.items()))
+    list(map(lambda item: setattr(self, *item), config.items()))
     
     self.imu_branches = nn.ModuleList()
     for i in range(self.NUM_IMUS):
-      self.imu_branches.append(CNN_IMU_Branch(config_dict))
+      self.imu_branches.append(CNN_IMU_Branch(config))
 
     comb_layers = [nn.Dropout(self.DROPOUT)]
     comb_layers += [nn.Linear(in_features=512*self.NUM_IMUS, out_features=512)]

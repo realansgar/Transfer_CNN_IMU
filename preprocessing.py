@@ -85,16 +85,16 @@ def compute_min_max_json(preprocess_func, filepath):
     json.dump(min_max_dict, min_max_json)
     print(f"saved {filepath}")
 
-def build_set(filepath, config_dict):
+def build_set(filepath, config):
   print(f"generating windows from {filepath}")
   data = np.load(filepath)
   data_x, data_y = split_data(data)
   data_y = data_y.astype(int)
 
-  data_x_windows = sliding_window(data_x, (config_dict["WINDOW_SIZE"], data_x.shape[1]), (config_dict["STEP_SIZE"], 1))
+  data_x_windows = sliding_window(data_x, (config["WINDOW_SIZE"], data_x.shape[1]), (config["STEP_SIZE"], 1))
 
-  data_y_windows = sliding_window(data_y, config_dict["WINDOW_SIZE"], config_dict["STEP_SIZE"])
-  data_y_windows = [np.argmax(np.bincount(window, minlength=config_dict["NUM_CLASSES"])) for window in data_y_windows]
+  data_y_windows = sliding_window(data_y, config["WINDOW_SIZE"], config["STEP_SIZE"])
+  data_y_windows = [np.argmax(np.bincount(window, minlength=config["NUM_CLASSES"])) for window in data_y_windows]
   data_y_windows = np.array(data_y_windows)
 
   return data_x_windows, data_y_windows
