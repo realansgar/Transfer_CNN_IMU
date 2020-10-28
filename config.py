@@ -79,7 +79,8 @@ PAMAP2 = {
   "DROPOUT": 0.5,
   "LEARNING_RATE": 0.0001,
   "RMS_DECAY": 0.95,
-  "NOISE": 0.01
+  "NOISE": 0.01,
+  "FREEZE": 0
 }
 
 # Opportunity Locomotion
@@ -132,5 +133,6 @@ OPPORTUNITY_LOCOMOTION = {
   "DROPOUT": 0.5,
   "LEARNING_RATE": 0.0001,
   "RMS_DECAY": 0.95,
-  "NOISE": 0.01
+  "NOISE": 0.01,
+  "FREEZE": 0
 }

@@ -9,11 +9,31 @@ from datasets import HARWindows
 import metrics
 from config import DEVICE, MODELS_BASEPATH, LOGS_BASEPATH, EVAL_FREQUENCY
 
-
+# pylint: disable=no-member
 class Trainer():
-  def __init__(self, config_dict):
-    self.config_dict = config_dict
-    list(map(lambda item: setattr(self, *item), config_dict.items()))
+  def __init__(self, config, pretrained_state_dict={}, frozen_param_idxs=[]):
+    self.config = config
+    list(map(lambda item: setattr(self, *item), config.items()))
+
+    self.Selected_CNN = getattr(CNN, self.MODEL)
+    self.net = self.Selected_CNN(self.config).to(DEVICE)
+    
+    # Use orthogonal init for conv layers, default init otherwise
+    for param in self.net.parameters():
+      try:
+        torch.nn.init.orthogonal_(param)
+      except ValueError:
+        pass
+
+    self.net.load_state_dict(pretrained_state_dict, strict=False)
+
+    for idx, param in enumerate(self.net.parameters()):
+      if idx in frozen_param_idxs:
+        param.requires_grad = False
+
+    self.criterion = torch.nn.CrossEntropyLoss()
+    self.optimizer = torch.optim.RMSprop(self.net.parameters(), lr=self.LEARNING_RATE, alpha=self.RMS_DECAY)
+
     if self.NOISE:
       self.noise = torch.distributions.Normal(0, self.NOISE)
 
@@ -43,12 +63,6 @@ class Trainer():
 
     train_dataloader = DataLoader(train_dataset, batch_size=self.BATCH_SIZE, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
-    
-    Selected_CNN = getattr(CNN, self.MODEL)
-    self.net = Selected_CNN(self.config_dict).to(DEVICE)
-
-    self.criterion = torch.nn.CrossEntropyLoss()
-    self.optimizer = torch.optim.RMSprop(self.net.parameters(), lr=self.LEARNING_RATE, alpha=self.RMS_DECAY)
     
     writer = SummaryWriter(LOGS_BASEPATH)
     best_weights = None
@@ -86,11 +100,12 @@ class Trainer():
     if save:
       now = datetime.now()
       nowstr = now.strftime("%d.%m.%y %H:%M:%S")
-      best_net = Selected_CNN(self.config_dict)
+      best_net = self.Selected_CNN(self.config)
       best_net.load_state_dict(best_weights)
+      final_val = metrics.evaluate_net(best_net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
       filename = f"{self.NAME}_{nowstr}.{self.MODEL}.pt"
       os.makedirs(MODELS_BASEPATH, exist_ok=True)
       os.makedirs(LOGS_BASEPATH, exist_ok=True)
       torch.save(best_net, MODELS_BASEPATH + filename)
-      torch.save({"train": train_eval, "val": val_eval, "config_dict": self.config_dict}, LOGS_BASEPATH + filename)
+      torch.save({"train": train_eval, "val": val_eval, "config": self.config, "final_val": final_val}, LOGS_BASEPATH + filename)
     return self.net
