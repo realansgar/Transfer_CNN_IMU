@@ -85,7 +85,7 @@ def compute_min_max_json(preprocess_func, filepath):
     json.dump(min_max_dict, min_max_json)
     print(f"saved {filepath}")
 
-def build_set(filepath, config):
+def build_windows(filepath, config):
   print(f"generating windows from {filepath}")
   data = np.load(filepath)
   data_x, data_y = split_data(data)
@@ -105,7 +105,7 @@ def build_train_val_test_set(config):
 
   print("building train_set")
   for filepath in config["TRAIN_SET"]:
-    x_windows, y_windows = build_set(filepath, config)
+    x_windows, y_windows = build_windows(filepath, config)
     x_train_set.append(x_windows)
     y_train_set.append(y_windows)
   x_train_set, y_train_set = np.concatenate(x_train_set, axis=0), np.concatenate(y_train_set, axis=0)
@@ -114,7 +114,7 @@ def build_train_val_test_set(config):
 
   print("builing val_set")
   for filepath in config["VAL_SET"]:
-    x_windows, y_windows = build_set(filepath, config)
+    x_windows, y_windows = build_windows(filepath, config)
     x_val_set.append(x_windows)
     y_val_set.append(y_windows)
   x_val_set, y_val_set = np.concatenate(x_val_set, axis=0), np.concatenate(y_val_set, axis=0)
@@ -123,12 +123,98 @@ def build_train_val_test_set(config):
 
   print("building test_set")
   for filepath in config["TEST_SET"]:
-    x_windows, y_windows = build_set(filepath, config)
+    x_windows, y_windows = build_windows(filepath, config)
     x_test_set.append(x_windows)
     y_test_set.append(y_windows)
   x_test_set, y_test_set = np.concatenate(x_test_set, axis=0), np.concatenate(y_test_set, axis=0)
   np.savez(config["TEST_SET_FILEPATH"], data_x=x_test_set, data_y=y_test_set)
   print(f"saved test_set to {config['TEST_SET_FILEPATH']}")
+
+def build_train_val_test_set_ORDER_PICKING_A():
+  subjects_x, subjects_y = {}, {}
+  for filename, filepath in zip(ORDER_PICKING_A_FILENAMES, ORDER_PICKING_A_FILEPATHS):
+    filepath = filepath + ORDER_PICKING_A_PREPROCESSED_FILENAME_SUFFIX
+    x_windows, y_windows = build_windows(filepath, ORDER_PICKING_A)
+    subjects_x[filename] = x_windows
+    subjects_y[filename] = y_windows
+  for train_val_split, train_val_filepaths in zip(ORDER_PICKING_A_TRAIN_VAL_SETS, ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS):
+    train, train_filepath = train_val_split[0], train_val_filepaths[0]
+    val, val_filepath = train_val_split[1], train_val_filepaths[1]
+    x_train_set, y_train_set = np.concatenate([subjects_x[key] for key in train], axis=0), np.concatenate([subjects_y[key] for key in train], axis=0)
+    x_val_set, y_val_set = subjects_x[val], subjects_y[val]
+    np.savez(train_filepath, data_x=x_train_set, data_y=y_train_set)
+    np.savez(val_filepath, data_x=x_val_set, data_y=y_val_set)
+  # TODO generate test set for randomization test?
+
+def build_train_val_test_set_ORDER_PICKING_B():
+  subjects_x, subjects_y = {}, {}
+  for filename, filepath in zip(ORDER_PICKING_B_FILENAMES, ORDER_PICKING_B_FILEPATHS):
+    filepath = filepath + ORDER_PICKING_B_PREPROCESSED_FILENAME_SUFFIX
+    x_windows, y_windows = build_windows(filepath, ORDER_PICKING_B)
+    subjects_x[filename] = x_windows
+    subjects_y[filename] = y_windows
+  for train_val_split, train_val_filepaths in zip(ORDER_PICKING_B_TRAIN_VAL_SETS, ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS):
+    train, train_filepath = train_val_split[0], train_val_filepaths[0]
+    val, val_filepath = train_val_split[1], train_val_filepaths[1]
+    x_train_set, y_train_set = np.concatenate([subjects_x[key] for key in train], axis=0), np.concatenate([subjects_y[key] for key in train], axis=0)
+    x_val_set, y_val_set = subjects_x[val], subjects_y[val]
+    np.savez(train_filepath, data_x=x_train_set, data_y=y_train_set)
+    np.savez(val_filepath, data_x=x_val_set, data_y=y_val_set)
+  # TODO generate test set for randomization test?
+
+def preprocess_ORDER_PICKING_A(normalize=True, write=False):
+  for filepath in ORDER_PICKING_A_FILEPATHS:
+    print(f"processing {filepath} ...")
+    data = np.loadtxt(filepath)
+    data = data[:,1:]
+    data = delete_labels(data, ORDER_PICKING_A_LABEL_MASK)
+    data = remap_labels(data, ORDER_PICKING_A_LABEL_REMAPPING)
+    data[np.isnan(data)] = 0
+    if normalize:
+      with open(ORDER_PICKING_A_MIN_MAX_FILEPATH) as min_max_json:
+        min_max_dict = json.load(min_max_json)
+        data = normalize_data(data, **min_max_dict)
+    if write:
+      out_filepath = filepath + ORDER_PICKING_A_PREPROCESSED_FILENAME_SUFFIX
+      np.save(out_filepath, data)
+      print(f"saved {out_filepath}")
+    yield data
+
+def preprocess_ORDER_PICKING_B(normalize=True, write=False):
+  for filepath in ORDER_PICKING_B_FILEPATHS:
+    print(f"processing {filepath} ...")
+    data = np.loadtxt(filepath)
+    data = data[:,1:]
+    data = delete_labels(data, ORDER_PICKING_B_LABEL_MASK)
+    data = remap_labels(data, ORDER_PICKING_B_LABEL_REMAPPING)
+    data[np.isnan(data)] = 0
+    if normalize:
+      with open(ORDER_PICKING_B_MIN_MAX_FILEPATH) as min_max_json:
+        min_max_dict = json.load(min_max_json)
+        data = normalize_data(data, **min_max_dict)
+    if write:
+      out_filepath = filepath + ORDER_PICKING_B_PREPROCESSED_FILENAME_SUFFIX
+      np.save(out_filepath, data)
+      print(f"saved {out_filepath}")
+    yield data
+
+def preprocess_OPPORTUNITY_GESTURES(normalize=True, write=False):
+  for filepath in OPPORTUNITY_GESTURES_FILEPATHS:
+    print(f"processing {filepath} ...")
+    data = np.loadtxt(filepath)
+    data = data[:,OPPORTUNITY_GESTURES_COLUMN_MASK]
+    data = delete_labels(data, OPPORTUNITY_GESTURES_LABEL_MASK)
+    data = remap_labels(data, OPPORTUNITY_GESTURES_LABEL_REMAPPING)
+    data[np.isnan(data)] = 0
+    if normalize:
+      with open(OPPORTUNITY_GESTURES_MIN_MAX_FILEPATH) as min_max_json:
+        min_max_dict = json.load(min_max_json)
+        data = normalize_data(data, **min_max_dict)
+    if write:
+      out_filepath = filepath + OPPORTUNITY_GESTURES_PREPROCESSED_FILENAME_SUFFIX
+      np.save(out_filepath, data)
+      print(f"saved {out_filepath}")
+    yield data
 
 def preprocess_OPPORTUNITY_LOCOMOTION(normalize=True, write=False):
   for filepath in OPPORTUNITY_LOCOMOTION_FILEPATHS:
@@ -170,7 +256,7 @@ def preprocess_PAMAP2(normalize=True, write=False):
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="Preprocesses or generates sliding windows according to config.py and min_max.json and saves it to disk.")
-  parser.add_argument("dataset", choices=["PAMAP2", "OPPORTUNITY_LOCOMOTION"], help="the dataset to process")
+  parser.add_argument("dataset", choices=["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES", "ORDER_PICKING_A", "ORDER_PICKING_B"], help="the dataset to process")
   parser.add_argument("action", choices=["all", "min_max", "preprocess", "windows"], metavar="action", help="all: do the whole pipeline; min_max: compute the min_max.json; preprocess: preprocess the dataset with min_max.json; windows: generate sliding windows from the preprocess dataset")
   args = parser.parse_args()
 
@@ -186,4 +272,7 @@ if __name__ == "__main__":
       pass
 
   if args.action in ["all", "windows"]:
-    locals_dict["build_train_val_test_set"](locals_dict[args.dataset])
+    if "ORDER_PICKING" in args.dataset:
+      locals_dict[f"build_train_val_test_set_{args.dataset}"]()
+    else:
+      locals_dict["build_train_val_test_set"](locals_dict[args.dataset])
