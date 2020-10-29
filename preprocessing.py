@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
-import numpy as np
 import json
+from glob import iglob
+import os
+import numpy as np
 from config import *
 from sliding_window import sliding_window
 
@@ -254,17 +256,25 @@ def preprocess_PAMAP2(normalize=True, write=False):
     yield data
 
 
+def get_dataset_statistics(dataset_name):
+  dataset_path = globals()[f"{dataset_name}_BASEPATH"]
+  for path in iglob(dataset_path + "*.npz"):
+    x, y = np.load(path)["data_x"], np.load(path)["data_y"]
+    filename = os.path.basename(path)
+    print(f"{filename}: {x.shape[0]} windows of shape {(x.shape[1], x.shape[2])}, {np.max(y) + 1} classes")
+
+
 if __name__ == "__main__":
   parser = ArgumentParser(description="Preprocesses or generates sliding windows according to config.py and min_max.json and saves it to disk.")
   parser.add_argument("dataset", choices=["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES", "ORDER_PICKING_A", "ORDER_PICKING_B"], help="the dataset to process")
-  parser.add_argument("action", choices=["all", "min_max", "preprocess", "windows"], metavar="action", help="all: do the whole pipeline; min_max: compute the min_max.json; preprocess: preprocess the dataset with min_max.json; windows: generate sliding windows from the preprocess dataset")
+  parser.add_argument("action", choices=["all", "min_max", "preprocess", "windows", "stats"], metavar="action", help="all: do the whole pipeline; min_max: compute the min_max.json; preprocess: preprocess the dataset with min_max.json; windows: generate sliding windows from the preprocess dataset")
   args = parser.parse_args()
 
-  locals_dict = locals()
-  preprocess_f = locals_dict[f"preprocess_{args.dataset}"]
+  globals_dict = globals()
+  preprocess_f = globals_dict[f"preprocess_{args.dataset}"]
 
   if args.action in ["all", "min_max"]:
-    min_max_filepath = locals_dict[f"{args.dataset}_MIN_MAX_FILEPATH"]
+    min_max_filepath = globals_dict[f"{args.dataset}_MIN_MAX_FILEPATH"]
     compute_min_max_json(preprocess_f, min_max_filepath)
   
   if args.action in ["all", "preprocess"]:
@@ -273,6 +283,9 @@ if __name__ == "__main__":
 
   if args.action in ["all", "windows"]:
     if "ORDER_PICKING" in args.dataset:
-      locals_dict[f"build_train_val_test_set_{args.dataset}"]()
+      globals_dict[f"build_train_val_test_set_{args.dataset}"]()
     else:
-      locals_dict["build_train_val_test_set"](locals_dict[args.dataset])
+      globals_dict["build_train_val_test_set"](globals_dict[args.dataset])
+  
+  if args.action in ["all", "stats"]:
+    get_dataset_statistics(args.dataset)
