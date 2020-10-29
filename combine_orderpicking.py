@@ -1,12 +1,12 @@
 import os
 import re
 import numpy as np
-from config import DATASETS_BASEPATH, ORDER_PICKING_A_BASEPATH, ORDER_PICKING_B_BASEPATH
+from config import ORDER_PICKING_A_BASEPATH, ORDER_PICKING_B_BASEPATH
 
 idx_pattern = re.compile(r".*?(\d\d\d)\D*$") # matches three digits to determine the subject
 name_pattern = re.compile(r"(.*)_\d\d\d\D*$") # matches the name of the sensor
 sensor_lists = []
-for folder in [DATASETS_BASEPATH + ORDER_PICKING_A_BASEPATH, DATASETS_BASEPATH + ORDER_PICKING_B_BASEPATH]:
+for folder in [ORDER_PICKING_A_BASEPATH, ORDER_PICKING_B_BASEPATH]:
   _, _, filenames = next(os.walk(folder))
   filenames = [filename for filename in filenames if filename.endswith(".csv")]
   filenames.sort() # -> Acc, Gyro, Magneto
