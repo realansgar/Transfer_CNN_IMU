@@ -29,6 +29,7 @@ def pamap2_hyperparameters():
   pamap2_simple_cnn = PAMAP2.copy()
   pamap2_simple_cnn["NAME"] = "PAMAP2-SimpleCNN-20ep"
   pamap2_simple_cnn["MODEL"] = "SimpleCNN"
+  pamap2_simple_cnn["EPOCHS"] = 20
   pamap2_trainer = Trainer(pamap2_simple_cnn)
   _, final_val = pamap2_trainer.train()
   print(final_val)
