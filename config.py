@@ -5,6 +5,9 @@ if torch.cuda.is_available():
 else:
   DEVICE = torch.device("cpu")
 
+torch.manual_seed(42)
+torch.backends.cudnn.benchmark = True
+
 # Filepaths
 
 MODELS_BASEPATH = "models/"
