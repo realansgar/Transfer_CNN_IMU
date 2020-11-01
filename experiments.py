@@ -22,14 +22,14 @@ def determine_frozen_param_idxs(state_dict, layer_num):
 
 
 def pamap2_hyperparameters():
-  pamap2_cnn_imu_2 = PAMAP2.copy()
-  pamap2_trainer = Trainer(pamap2_cnn_imu_2)
-  pamap2_trainer.train()
+  #pamap2_cnn_imu_2 = PAMAP2.copy()
+  #pamap2_trainer = Trainer(pamap2_cnn_imu_2)
+  #pamap2_trainer.train()
 
   pamap2_simple_cnn = pamap2_cnn_imu_2.copy()
   pamap2_simple_cnn["NAME"] = "PAMAP2 - SimpleCNN"
   pamap2_simple_cnn["MODEL"] = "SimpleCNN"
-  pamap2_trainer = Trainer(pamap2_cnn_imu_2)
+  pamap2_trainer = Trainer(pamap2_simple_cnn)
   pamap2_trainer.train()
 
 if __name__ == "__main__":
