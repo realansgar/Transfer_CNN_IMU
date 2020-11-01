@@ -52,8 +52,6 @@ class SimpleCNN(nn.Module):
   def forward(self, x):
     x = self.cnn_imu_branch(x)
     x = self.last_layer(x)
-    if not self.training:
-      x = F.softmax(x, dim=1)
     return x
   
 
@@ -87,8 +85,6 @@ class CNN_IMU(nn.Module):
     x = list(map(lambda imu_branch, x_imu: imu_branch(x_imu), self.imu_branches, x_imus))
     x = torch.cat(x, dim=1)
     x = self.combining_layers(x)
-    if not self.training:
-      x = F.softmax(x, dim=1)
     return x
 
 if __name__ == "__main__":

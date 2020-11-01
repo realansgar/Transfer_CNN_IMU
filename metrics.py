@@ -1,4 +1,5 @@
 import torch
+from torch.functional import F
 from config import DEVICE
 
 def class_confusion(pred_y, data_y, num_classes):
@@ -91,9 +92,9 @@ def evaluate_net(net, criterion, batch, num_classes):
 
   net.eval()
   with torch.no_grad():
-    prob_y = net(data_x)
-    loss = criterion(prob_y, data_y)
-
+    raw_y = net(data_x)
+    loss = criterion(raw_y, data_y)
+    prob_y = F.softmax(raw_y, dim=1)
     pred_y = torch.argmax(prob_y, dim=1)
 
     precision, recall = precision_recall(pred_y, data_y, num_classes)

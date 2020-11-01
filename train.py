@@ -6,7 +6,7 @@ from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
 import metrics
-from config import DEVICE, MODELS_BASEPATH, LOGS_BASEPATH, EVAL_FREQUENCY
+from config import DEVICE, MODELS_BASEPATH, LOGS_BASEPATH, EVAL_PERIOD
 
 # pylint: disable=no-member
 class Trainer():
@@ -77,7 +77,7 @@ class Trainer():
         self.process_batch(data, noise=self.NOISE)
         train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, training:")
 
-        if i % EVAL_FREQUENCY == (EVAL_FREQUENCY - 1) or i == len(train_dataloader) - 1:
+        if i % EVAL_PERIOD == (EVAL_PERIOD - 1) or i == len(train_dataloader) - 1:
           train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, validating:")
           train_eval_row = metrics.evaluate_net(self.net, self.criterion, data, self.NUM_CLASSES)
           val_eval_row = metrics.evaluate_net(self.net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)

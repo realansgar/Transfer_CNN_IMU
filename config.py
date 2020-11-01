@@ -11,7 +11,7 @@ MODELS_BASEPATH = "models/"
 LOGS_BASEPATH = "logs/"
 DATASETS_BASEPATH = "/data/ozeino/"
 
-EVAL_FREQUENCY = 100
+EVAL_PERIOD = 50
 
 # PAMAP2
 

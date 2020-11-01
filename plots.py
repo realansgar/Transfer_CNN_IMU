@@ -2,7 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import os
 from argparse import ArgumentParser, FileType
-from config import LOGS_BASEPATH, DEVICE, EVAL_FREQUENCY
+from config import LOGS_BASEPATH, DEVICE, EVAL_PERIOD
 
 def plot(file):
   filepath = file.name
@@ -16,8 +16,8 @@ def plot(file):
   axs = axs.flatten()
   for (i, key) in enumerate(train_eval):
     ax = axs[i]
-    ax.plot(range(0, len(train_eval[key]) * EVAL_FREQUENCY, EVAL_FREQUENCY), train_eval[key], label="train")
-    ax.plot(range(0, len(val_eval[key]) * EVAL_FREQUENCY, EVAL_FREQUENCY), val_eval[key], label="validation")
+    ax.plot(range(0, len(train_eval[key]) * EVAL_PERIOD, EVAL_PERIOD), train_eval[key], label="train")
+    ax.plot(range(0, len(val_eval[key]) * EVAL_PERIOD, EVAL_PERIOD), val_eval[key], label="validation")
     ax.set_xlabel("iterations")
     ax.set_ylabel(key)
     ax.set_title(key)
