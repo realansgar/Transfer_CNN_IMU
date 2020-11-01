@@ -1,6 +1,5 @@
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 import os
 from tqdm import tqdm
@@ -64,7 +63,6 @@ class Trainer():
     train_dataloader = DataLoader(train_dataset, batch_size=self.BATCH_SIZE, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
     
-    writer = SummaryWriter(LOGS_BASEPATH)
     best_weights = None
     best_val_loss = float("inf")
     train_eval = []
@@ -86,9 +84,6 @@ class Trainer():
           train_eval_epoch = {col: (train_eval_epoch[col] if col in train_eval_epoch else []) + [val] for (col, val) in train_eval_row.items()}
           val_eval_epoch = {col: (val_eval_epoch[col] if col in val_eval_epoch else []) + [val] for (col, val) in val_eval_row.items()}
 
-          for col in train_eval_row:
-            writer.add_scalars(col, {"train": train_eval_row[col], "validation": val_eval_row[col]}, i + epoch * len(train_dataloader))
-
           if val_eval_row["loss"] < best_val_loss:
             best_val_loss = val_eval_row["loss"]
             best_weights = self.net.state_dict()
@@ -96,7 +91,6 @@ class Trainer():
       train_eval += [train_eval_epoch]      
       val_eval += [val_eval_epoch]
 
-    writer.close()
     if save:
       now = datetime.now()
       nowstr = now.strftime("%d.%m.%y %H:%M:%S")
