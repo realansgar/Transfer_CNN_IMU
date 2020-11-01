@@ -1,10 +1,12 @@
 import torch
 import matplotlib.pyplot as plt
 import os
+from argparse import ArgumentParser, FileType
 from config import LOGS_BASEPATH, DEVICE, EVAL_FREQUENCY
 
-def plot(filename):
-  eval_dict = torch.load(filename, map_location=DEVICE)
+def plot(file):
+  filepath = file.name
+  eval_dict = torch.load(filepath, map_location=DEVICE)
   train_eval = eval_dict["train"]
   val_eval = eval_dict["val"]
   # [{"a": [1,2], "b": [3,4]}, {"a": [5,6], "b": [7,8]}] -> {"a": [1,2,5,6], "b": [3,4,7,8]} losing information about epochs
@@ -20,11 +22,14 @@ def plot(filename):
     ax.set_ylabel(key)
     ax.set_title(key)
     ax.legend()
-  title = os.path.basename(filename)
+  title = os.path.basename(filepath)
   fig.set_size_inches(23.3, 16.5)
   fig.tight_layout()
-  fig.savefig(os.path.splitext(filename)[0] + ".pdf", orientation="landscape", bbox_inches='tight')
+  fig.savefig(os.path.splitext(filepath)[0] + ".pdf", orientation="landscape", bbox_inches='tight')
 
 if __name__ == "__main__":
-  # TODO insert argparser for plots
-  pass
+  parser = ArgumentParser(description="Plot saved eval metrics from .pt dict file.")
+  parser.add_argument("file", type=FileType("r"), help="the file to plot")
+  args = parser.parse_args()
+
+  plot(args.file)
