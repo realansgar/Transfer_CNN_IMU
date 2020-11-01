@@ -64,7 +64,7 @@ class Trainer():
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
     
     best_weights = None
-    best_val_weighted_f1 = float("-inf")
+    best_val_loss = float("inf")
     train_eval = []
     val_eval = []
 
@@ -84,8 +84,8 @@ class Trainer():
           train_eval_epoch = {col: (train_eval_epoch[col] if col in train_eval_epoch else []) + [val] for (col, val) in train_eval_row.items()}
           val_eval_epoch = {col: (val_eval_epoch[col] if col in val_eval_epoch else []) + [val] for (col, val) in val_eval_row.items()}
 
-          if val_eval_row["weighted_f1"] > best_val_weighted_f1:
-            best_val_weighted_f1 = val_eval_row["weighted_f1"]
+          if val_eval_row["loss"] < best_val_loss:
+            best_val_loss = val_eval_row["loss"]
             best_weights = self.net.state_dict()
 
       train_eval += [train_eval_epoch]      
