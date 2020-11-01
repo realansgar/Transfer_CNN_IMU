@@ -27,10 +27,11 @@ def pamap2_hyperparameters():
   #pamap2_trainer.train()
 
   pamap2_simple_cnn = PAMAP2.copy()
-  pamap2_simple_cnn["NAME"] = "PAMAP2 - SimpleCNN"
+  pamap2_simple_cnn["NAME"] = "PAMAP2-SimpleCNN-20ep"
   pamap2_simple_cnn["MODEL"] = "SimpleCNN"
   pamap2_trainer = Trainer(pamap2_simple_cnn)
-  pamap2_trainer.train()
+  _, final_val = pamap2_trainer.train()
+  print(final_val)
 
 if __name__ == "__main__":
   # TODO insert argparser for experiments

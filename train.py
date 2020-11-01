@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from datetime import datetime
 import os
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
 import metrics
@@ -68,7 +68,7 @@ class Trainer():
     train_eval = []
     val_eval = []
 
-    for epoch in range(self.EPOCHS):
+    for epoch in trange(self.EPOCHS):
       train_data_pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
       train_eval_epoch = {}
       val_eval_epoch = {}
@@ -102,4 +102,4 @@ class Trainer():
       os.makedirs(LOGS_BASEPATH, exist_ok=True)
       torch.save(best_net, MODELS_BASEPATH + filename)
       torch.save({"train": train_eval, "val": val_eval, "config": self.config, "final_val": final_val}, LOGS_BASEPATH + filename)
-    return self.net
+    return self.net, final_val
