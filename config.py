@@ -9,7 +9,7 @@ else:
 
 MODELS_BASEPATH = "models/"
 LOGS_BASEPATH = "logs/"
-DATASETS_BASEPATH = "/home/oskar/Documents/Datasets/"
+DATASETS_BASEPATH = "/data/ozeino/"
 
 EVAL_FREQUENCY = 100
 
