@@ -93,7 +93,7 @@ class Trainer():
 
     if save:
       now = datetime.now()
-      nowstr = now.strftime("%d.%m.%y %H:%M:%S")
+      nowstr = now.strftime("%d.%m.%y_%H:%M:%S")
       best_net = self.Selected_CNN(self.config)
       best_net.load_state_dict(best_weights)
       final_val = metrics.evaluate_net(best_net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
