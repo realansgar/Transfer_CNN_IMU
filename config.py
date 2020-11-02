@@ -6,7 +6,8 @@ else:
   DEVICE = torch.device("cpu")
 
 torch.manual_seed(42)
-torch.backends.cudnn.benchmark = True
+torch.cuda.manual_seed_all(42)
+torch.backends.cudnn.deterministic = True
 
 # Filepaths
 
