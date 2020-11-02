@@ -6,7 +6,7 @@ from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
 import metrics
-from config import DEVICE, MODELS_BASEPATH, LOGS_BASEPATH, EVAL_PERIOD
+from config import DEVICE, LOGS_BASEPATH, EVAL_PERIOD
 
 # pylint: disable=no-member
 class Trainer():
