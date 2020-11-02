@@ -6,6 +6,8 @@ import torch
 from train import Trainer
 from config import *
 
+subject_re = re.compile(r"subject\d\d\d")
+
 def save_best_result(results, name):
   best_loss = float("inf")
   best_result = None
@@ -37,29 +39,287 @@ def determine_frozen_param_idxs(state_dict, layer_num):
 
 
 def pamap2_epochs():
-  pamap2_simple_cnn_results = []
+  simple_cnn_results = []
   for epochs in [20,12,8]:
-    pamap2_simple_cnn = PAMAP2.copy()
-    pamap2_simple_cnn["NAME"] = f"PAMAP2-Simple_CNN-{epochs}ep"
-    pamap2_simple_cnn["MODEL"] = "Simple_CNN"
-    pamap2_simple_cnn["EPOCHS"] = epochs
-    pamap2_trainer = Trainer(pamap2_simple_cnn)
-    eval_dict = pamap2_trainer.train()
-    pamap2_simple_cnn_results.append(eval_dict)
+    config = PAMAP2.copy()
+    config["NAME"] = f"PAMAP2-Simple_CNN-{epochs}ep"
+    config["MODEL"] = "Simple_CNN"
+    config["EPOCHS"] = epochs
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    simple_cnn_results.append(eval_dict)
     print(eval_dict["best_val"])
-  save_best_result(pamap2_simple_cnn_results, "PAMAP2-Simple_CNN-ep")
+  save_best_result(simple_cnn_results, "PAMAP2-Simple_CNN-ep")
 
-  pamap2_cnn_imu_results = []
+  cnn_imu_results = []
   for epochs in [20,12,8]:
-    pamap2_cnn_imu = PAMAP2.copy()
-    pamap2_cnn_imu["NAME"] = f"PAMAP2-CNN_IMU-{epochs}ep"
-    pamap2_cnn_imu["MODEL"] = "CNN_IMU"
-    pamap2_cnn_imu["EPOCHS"] = epochs
-    pamap2_trainer = Trainer(pamap2_cnn_imu)
-    eval_dict = pamap2_trainer.train()
-    pamap2_cnn_imu_results.append(eval_dict)
+    config = PAMAP2.copy()
+    config["NAME"] = f"PAMAP2-CNN_IMU-{epochs}ep"
+    config["MODEL"] = "CNN_IMU"
+    config["EPOCHS"] = epochs
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    cnn_imu_results.append(eval_dict)
     print(eval_dict["best_val"])
-  save_best_result(pamap2_cnn_imu_results, "PAMAP2-CNN_IMU-ep")
+  save_best_result(cnn_imu_results, "PAMAP2-CNN_IMU-ep")
+
+def pamap2_learning_rate():
+  simple_cnn_results = []
+  for lr in [10**-3, 10**-4, 10**-5]:
+    config = PAMAP2.copy()
+    config["NAME"] = f"PAMAP2-Simple_CNN-{lr}lr"
+    config["MODEL"] = "Simple_CNN"
+    config["LEARNING_RATE"] = lr
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    simple_cnn_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(simple_cnn_results, "PAMAP2-Simple_CNN-lr")
+
+  cnn_imu_results = []
+  for lr in [10**-3, 10**-4, 10**-5]:
+    config = PAMAP2.copy()
+    config["NAME"] = f"PAMAP2-CNN_IMU-{lr}lr"
+    config["MODEL"] = "CNN_IMU"
+    config["LEARNING_RATE"] = lr
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    cnn_imu_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(cnn_imu_results, "PAMAP2-CNN_IMU-lr")
+
+def opportunity_locomotion_epochs():
+  simple_cnn_results = []
+  for epochs in [20,12,8]:
+    config = OPPORTUNITY_LOCOMOTION.copy()
+    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-Simple_CNN-{epochs}ep"
+    config["MODEL"] = "Simple_CNN"
+    config["EPOCHS"] = epochs
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    simple_cnn_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-Simple_CNN-ep")
+
+  cnn_imu_results = []
+  for epochs in [20,12,8]:
+    config = OPPORTUNITY_LOCOMOTION.copy()
+    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-CNN_IMU-{epochs}ep"
+    config["MODEL"] = "CNN_IMU"
+    config["EPOCHS"] = epochs
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    cnn_imu_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(cnn_imu_results, "OPPORTUNITY_LOCOMOTION-CNN_IMU-ep")
+
+def opportunity_locomotion_learning_rate():
+  simple_cnn_results = []
+  for lr in [10**-3, 10**-4, 10**-5]:
+    config = OPPORTUNITY_LOCOMOTION.copy()
+    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-Simple_CNN-{lr}lr"
+    config["MODEL"] = "Simple_CNN"
+    config["LEARNING_RATE"] = lr
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    simple_cnn_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-Simple_CNN-lr")
+
+  cnn_imu_results = []
+  for lr in [10**-3, 10**-4, 10**-5]:
+    config = OPPORTUNITY_LOCOMOTION.copy()
+    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-CNN_IMU-{lr}lr"
+    config["MODEL"] = "CNN_IMU"
+    config["LEARNING_RATE"] = lr
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    cnn_imu_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-CNN_IMU-lr")
+
+def opportunity_gestures_epochs():
+  simple_cnn_results = []
+  for epochs in [20,12,8]:
+    config = OPPORTUNITY_GESTURES.copy()
+    config["NAME"] = f"OPPORTUNITY_GESTURES-Simple_CNN-{epochs}ep"
+    config["MODEL"] = "Simple_CNN"
+    config["EPOCHS"] = epochs
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    simple_cnn_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-Simple_CNN-ep")
+
+  cnn_imu_results = []
+  for epochs in [20,12,8]:
+    config = OPPORTUNITY_GESTURES.copy()
+    config["NAME"] = f"OPPORTUNITY_GESTURES-CNN_IMU-{epochs}ep"
+    config["MODEL"] = "CNN_IMU"
+    config["EPOCHS"] = epochs
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    cnn_imu_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(cnn_imu_results, "OPPORTUNITY_GESTURES-CNN_IMU-ep")
+
+def opportunity_gestures_learning_rate():
+  simple_cnn_results = []
+  for lr in [10**-3, 10**-4, 10**-5]:
+    config = OPPORTUNITY_GESTURES.copy()
+    config["NAME"] = f"OPPORTUNITY_GESTURES-Simple_CNN-{lr}lr"
+    config["MODEL"] = "Simple_CNN"
+    config["LEARNING_RATE"] = lr
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    simple_cnn_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-Simple_CNN-lr")
+
+  cnn_imu_results = []
+  for lr in [10**-3, 10**-4, 10**-5]:
+    config = OPPORTUNITY_GESTURES.copy()
+    config["NAME"] = f"OPPORTUNITY_GESTURES-CNN_IMU-{lr}lr"
+    config["MODEL"] = "CNN_IMU"
+    config["LEARNING_RATE"] = lr
+    trainer = Trainer(config)
+    eval_dict = trainer.train()
+    cnn_imu_results.append(eval_dict)
+    print(eval_dict["best_val"])
+  save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-CNN_IMU-lr")
+
+def order_picking_a_epochs():
+  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    simple_cnn_results = []
+    for epochs in [25,20,15]:
+      config = ORDER_PICKING_A.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath
+      config["NAME"] = f"ORDER_PICKING_A-Simple_CNN-{subject}-{epochs}ep"
+      config["MODEL"] = "Simple_CNN"
+      config["EPOCHS"] = epochs
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      simple_cnn_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(simple_cnn_results, f"ORDER_PICKING_A-Simple_CNN-{subject}-ep")
+
+  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    cnn_imu_results = []
+    for epochs in [25,20,15]:
+      config = ORDER_PICKING_A.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath
+      config["NAME"] = f"ORDER_PICKING_A-CNN_IMU-{subject}-{epochs}ep"
+      config["MODEL"] = "CNN_IMU"
+      config["EPOCHS"] = epochs
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      cnn_imu_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(cnn_imu_results, f"ORDER_PICKING_A-CNN_IMU-{subject}-ep")
+
+def order_picking_a_learning_rate():
+  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    simple_cnn_results = []
+    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
+      config = ORDER_PICKING_A.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath
+      config["NAME"] = f"ORDER_PICKING_A-Simple_CNN-{subject}-{lr}lr"
+      config["MODEL"] = "Simple_CNN"
+      config["LEARNING_RATE"] = lr
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      simple_cnn_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(simple_cnn_results, f"ORDER_PICKING_A-Simple_CNN-{subject}-lr")
+
+  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    cnn_imu_results = []
+    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
+      config = ORDER_PICKING_A.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath      
+      config["NAME"] = f"ORDER_PICKING_A-CNN_IMU-{subject}-{lr}lr"
+      config["MODEL"] = "CNN_IMU"
+      config["LEARNING_RATE"] = lr
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      cnn_imu_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(simple_cnn_results, f"ORDER_PICKING_A-CNN_IMU-{subject}-lr")
+
+def order_picking_b_epochs():
+  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    simple_cnn_results = []
+    for epochs in [25,20,15]:
+      config = ORDER_PICKING_B.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath
+      config["NAME"] = f"ORDER_PICKING_B-Simple_CNN-{subject}-{epochs}ep"
+      config["MODEL"] = "Simple_CNN"
+      config["EPOCHS"] = epochs
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      simple_cnn_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(simple_cnn_results, f"ORDER_PICKING_B-Simple_CNN-{subject}-ep")
+
+  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    cnn_imu_results = []
+    for epochs in [25,20,15]:
+      config = ORDER_PICKING_B.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath
+      config["NAME"] = f"ORDER_PICKING_B-CNN_IMU-{subject}-{epochs}ep"
+      config["MODEL"] = "CNN_IMU"
+      config["EPOCHS"] = epochs
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      cnn_imu_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(cnn_imu_results, f"ORDER_PICKING_B-CNN_IMU-{subject}-ep")
+
+def order_picking_b_learning_rate():
+  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    simple_cnn_results = []
+    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
+      config = ORDER_PICKING_B.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath
+      config["NAME"] = f"ORDER_PICKING_B-Simple_CNN-{subject}-{lr}lr"
+      config["MODEL"] = "Simple_CNN"
+      config["LEARNING_RATE"] = lr
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      simple_cnn_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(simple_cnn_results, f"ORDER_PICKING_B-Simple_CNN-{subject}-lr")
+
+  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
+    subject = subject_re.findall(val_filepath)[0]
+    cnn_imu_results = []
+    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
+      config = ORDER_PICKING_B.copy()
+      config["TRAIN_SET_FILEPATH"] = train_filepath
+      config["VAL_SET_FILEPATH"] = val_filepath      
+      config["NAME"] = f"ORDER_PICKING_B-CNN_IMU-{subject}-{lr}lr"
+      config["MODEL"] = "CNN_IMU"
+      config["LEARNING_RATE"] = lr
+      trainer = Trainer(config)
+      eval_dict = trainer.train()
+      cnn_imu_results.append(eval_dict)
+      print(eval_dict["best_val"])
+    save_best_result(simple_cnn_results, f"ORDER_PICKING_B-CNN_IMU-{subject}-lr")
+
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="Start predefined experiments")
