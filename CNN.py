@@ -80,7 +80,6 @@ class CNN_IMU(nn.Module):
       x_imus = torch.split(x, self.IMUS, dim=3)
     else:
       x_imus = torch.split(x, (self.NUM_SENSOR_CHANNELS // self.IMUS), dim=3)
-    print(list(map(lambda x: x.shape, x_imus)))
     x = list(map(lambda imu_branch, x_imu: imu_branch(x_imu), self.imu_branches, x_imus))
     x = torch.cat(x, dim=1)
     x = self.combining_layers(x)
