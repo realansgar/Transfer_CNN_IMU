@@ -10,7 +10,7 @@ torch.backends.cudnn.benchmark = True
 
 # Filepaths
 
-MODELS_BASEPATH = "models/"
+TEST_BASEPATH = "test/"
 LOGS_BASEPATH = "logs/"
 DATASETS_BASEPATH = "/data/ozeino/"
 
