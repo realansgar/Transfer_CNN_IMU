@@ -15,7 +15,7 @@ def save_best_result(results, name):
     if result["best_val"]["loss"] < best_loss:
       best_result = result
   eval_dict = best_result
-  filename = f"{name}_best.{eval_dict['config']['MODEL']}.pt"
+  filename = f"{name}_best.pt"
   os.makedirs(LOGS_BASEPATH, exist_ok=True)
   torch.save(eval_dict, LOGS_BASEPATH + filename)
 
@@ -48,7 +48,7 @@ def pamap2_epochs():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "PAMAP2-Simple_CNN-ep")
 
   cnn_imu_results = []
@@ -60,7 +60,7 @@ def pamap2_epochs():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(cnn_imu_results, "PAMAP2-CNN_IMU-ep")
 
 def pamap2_learning_rate():
@@ -73,7 +73,7 @@ def pamap2_learning_rate():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "PAMAP2-Simple_CNN-lr")
 
   cnn_imu_results = []
@@ -85,7 +85,7 @@ def pamap2_learning_rate():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(cnn_imu_results, "PAMAP2-CNN_IMU-lr")
 
 def opportunity_locomotion_epochs():
@@ -98,7 +98,7 @@ def opportunity_locomotion_epochs():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-Simple_CNN-ep")
 
   cnn_imu_results = []
@@ -110,7 +110,7 @@ def opportunity_locomotion_epochs():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(cnn_imu_results, "OPPORTUNITY_LOCOMOTION-CNN_IMU-ep")
 
 def opportunity_locomotion_learning_rate():
@@ -123,7 +123,7 @@ def opportunity_locomotion_learning_rate():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-Simple_CNN-lr")
 
   cnn_imu_results = []
@@ -135,7 +135,7 @@ def opportunity_locomotion_learning_rate():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-CNN_IMU-lr")
 
 def opportunity_gestures_epochs():
@@ -148,7 +148,7 @@ def opportunity_gestures_epochs():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-Simple_CNN-ep")
 
   cnn_imu_results = []
@@ -160,7 +160,7 @@ def opportunity_gestures_epochs():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(cnn_imu_results, "OPPORTUNITY_GESTURES-CNN_IMU-ep")
 
 def opportunity_gestures_learning_rate():
@@ -173,7 +173,7 @@ def opportunity_gestures_learning_rate():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-Simple_CNN-lr")
 
   cnn_imu_results = []
@@ -185,7 +185,7 @@ def opportunity_gestures_learning_rate():
     trainer = Trainer(config)
     eval_dict = trainer.train()
     cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"])
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
   save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-CNN_IMU-lr")
 
 def order_picking_a_epochs():
@@ -202,7 +202,7 @@ def order_picking_a_epochs():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(simple_cnn_results, f"ORDER_PICKING_A-Simple_CNN-{subject}-ep")
 
   for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
@@ -218,7 +218,7 @@ def order_picking_a_epochs():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(cnn_imu_results, f"ORDER_PICKING_A-CNN_IMU-{subject}-ep")
 
 def order_picking_a_learning_rate():
@@ -235,7 +235,7 @@ def order_picking_a_learning_rate():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(simple_cnn_results, f"ORDER_PICKING_A-Simple_CNN-{subject}-lr")
 
   for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
@@ -251,7 +251,7 @@ def order_picking_a_learning_rate():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(simple_cnn_results, f"ORDER_PICKING_A-CNN_IMU-{subject}-lr")
 
 def order_picking_b_epochs():
@@ -268,7 +268,7 @@ def order_picking_b_epochs():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(simple_cnn_results, f"ORDER_PICKING_B-Simple_CNN-{subject}-ep")
 
   for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
@@ -284,7 +284,7 @@ def order_picking_b_epochs():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(cnn_imu_results, f"ORDER_PICKING_B-CNN_IMU-{subject}-ep")
 
 def order_picking_b_learning_rate():
@@ -301,7 +301,7 @@ def order_picking_b_learning_rate():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(simple_cnn_results, f"ORDER_PICKING_B-Simple_CNN-{subject}-lr")
 
   for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
@@ -317,7 +317,7 @@ def order_picking_b_learning_rate():
       trainer = Trainer(config)
       eval_dict = trainer.train()
       cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"])
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(simple_cnn_results, f"ORDER_PICKING_B-CNN_IMU-{subject}-lr")
 
 

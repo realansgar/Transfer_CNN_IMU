@@ -5,9 +5,14 @@ if torch.cuda.is_available():
 else:
   DEVICE = torch.device("cpu")
 
-torch.manual_seed(42)
-torch.cuda.manual_seed_all(42)
-torch.backends.cudnn.deterministic = True
+DETERMINISTIC = True
+
+if DETERMINISTIC:
+  torch.manual_seed(42)
+  torch.cuda.manual_seed_all(42)
+  torch.backends.cudnn.deterministic = True
+else:
+  torch.backends.cudnn.benchmark = True
 
 # Filepaths
 

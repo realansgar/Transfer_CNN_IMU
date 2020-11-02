@@ -6,7 +6,7 @@ from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
 import metrics
-from config import DEVICE, LOGS_BASEPATH, EVAL_PERIOD
+from config import DEVICE, LOGS_BASEPATH, EVAL_PERIOD, DETERMINISTIC
 
 # pylint: disable=no-member
 class Trainer():
@@ -14,6 +14,8 @@ class Trainer():
     self.config = config
     list(map(lambda item: setattr(self, *item), config.items()))
 
+    if DETERMINISTIC:
+      torch.manual_seed(42)
     self.Selected_CNN = getattr(CNN, self.MODEL)
     self.net = self.Selected_CNN(self.config).to(DEVICE)
     
@@ -77,10 +79,10 @@ class Trainer():
       for i, data in train_data_pbar:
         self.net.train()
         self.process_batch(data, noise=self.NOISE)
-        train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, training:")
+        train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, training")
 
         if i % EVAL_PERIOD == (EVAL_PERIOD - 1) or i == len(train_dataloader) - 1:
-          train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, validating:")
+          train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, validating")
           train_eval_row = metrics.evaluate_net(self.net, self.criterion, data, self.NUM_CLASSES)
           val_eval_row = metrics.evaluate_net(self.net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
           train_eval_epoch = {col: (train_eval_epoch[col] if col in train_eval_epoch else []) + [val] for (col, val) in train_eval_row.items()}
