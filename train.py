@@ -56,15 +56,17 @@ class Trainer():
 
     return loss
 
-  def train(self, save=True):
+  def train(self, save=False):
     train_dataset = HARWindows(self.TRAIN_SET_FILEPATH)
     val_dataset = HARWindows(self.VAL_SET_FILEPATH)
 
     train_dataloader = DataLoader(train_dataset, batch_size=self.BATCH_SIZE, shuffle=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset))
     
     best_weights = None
     best_val_loss = float("inf")
+    best_epoch = -1
+    best_iteration = -1
     train_eval = []
     val_eval = []
 
@@ -87,19 +89,20 @@ class Trainer():
           if val_eval_row["loss"] < best_val_loss:
             best_val_loss = val_eval_row["loss"]
             best_weights = self.net.state_dict()
+            best_epoch = epoch
+            best_iteration = i
 
       train_eval += [train_eval_epoch]      
       val_eval += [val_eval_epoch]
 
+    now = datetime.now()
+    nowstr = now.strftime("%d.%m.%y_%H:%M:%S")
+    best_net = self.Selected_CNN(self.config)
+    best_net.load_state_dict(best_weights)
+    best_val = metrics.evaluate_net(best_net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
+    eval_dict = {"net": best_net, "train": train_eval, "val": val_eval, "config": self.config, "best_val": best_val, "best_epoch": best_epoch, "best_iteration": best_iteration}
     if save:
-      now = datetime.now()
-      nowstr = now.strftime("%d.%m.%y_%H:%M:%S")
-      best_net = self.Selected_CNN(self.config)
-      best_net.load_state_dict(best_weights)
-      final_val = metrics.evaluate_net(best_net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
       filename = f"{self.NAME}_{nowstr}.{self.MODEL}.pt"
-      os.makedirs(MODELS_BASEPATH, exist_ok=True)
       os.makedirs(LOGS_BASEPATH, exist_ok=True)
-      torch.save(best_net, MODELS_BASEPATH + filename)
-      torch.save({"train": train_eval, "val": val_eval, "config": self.config, "final_val": final_val}, LOGS_BASEPATH + filename)
-    return self.net, final_val
+      torch.save(eval_dict, LOGS_BASEPATH + filename)
+    return eval_dict
