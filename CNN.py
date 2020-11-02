@@ -1,5 +1,4 @@
 from torch import nn
-from torch.nn import functional as F
 from config import *
 
 
@@ -40,7 +39,7 @@ class CNN_IMU_Branch(nn.Module):
     return torch.prod(torch.tensor(x.shape))
 
 
-class SimpleCNN(nn.Module):
+class Simple_CNN(nn.Module):
   def __init__(self, config):
     super().__init__()
     list(map(lambda item: setattr(self, *item), config.items()))
