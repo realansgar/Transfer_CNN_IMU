@@ -4,8 +4,7 @@ import os
 from argparse import ArgumentParser, FileType
 from config import LOGS_BASEPATH, DEVICE, EVAL_PERIOD
 
-def plot(file):
-  filepath = file.name
+def plot(filepath):
   eval_dict = torch.load(filepath, map_location=DEVICE)
   train_eval = eval_dict["train"]
   val_eval = eval_dict["val"]
@@ -29,7 +28,8 @@ def plot(file):
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="Plot saved eval metrics from .pt dict file.")
-  parser.add_argument("file", type=FileType("r"), help="the file to plot")
+  parser.add_argument("files", type=FileType("r"), nargs="*", help="the files to plot")
   args = parser.parse_args()
 
-  plot(args.file)
+  for file in args.files:
+    plot(file.name)
