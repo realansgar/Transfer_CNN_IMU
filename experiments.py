@@ -320,6 +320,17 @@ def order_picking_b_learning_rate():
       print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}")
     save_best_result(simple_cnn_results, f"ORDER_PICKING_B-CNN_IMU-{subject}-lr")
 
+def all_hyperparameters():
+  pamap2_epochs()
+  pamap2_learning_rate()
+  opportunity_locomotion_epochs()
+  opportunity_locomotion_learning_rate()
+  opportunity_gestures_epochs()
+  opportunity_gestures_learning_rate()
+  order_picking_a_epochs()
+  order_picking_a_learning_rate()
+  order_picking_b_epochs()
+  order_picking_b_learning_rate()
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="Start predefined experiments")
