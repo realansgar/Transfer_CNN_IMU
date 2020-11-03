@@ -147,8 +147,8 @@ def base_transfer(source_dataset, target_dataset, freeze=0, mapping=None):
 
 def simple_cnn_freeze(source_dataset, target_dataset):
   config_dict = getattr(config, target_dataset)
+  results = []
   for freeze in range(5):
-    results = []
     name = f"{source_dataset}-{target_dataset}-Simple_CNN-FREEZE"
     config_dict["NAME"] = f"{name}-{freeze}"
     config_dict["MODEL"] = "Simple_CNN"
