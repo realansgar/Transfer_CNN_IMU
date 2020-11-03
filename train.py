@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from datetime import datetime
 import os
+from copy import deepcopy
 from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
@@ -90,7 +91,7 @@ class Trainer():
 
           if val_eval_row["loss"] < best_val_loss:
             best_val_loss = val_eval_row["loss"]
-            best_weights = self.net.state_dict()
+            best_weights = deepcopy(self.net.state_dict())
             best_epoch = epoch
             best_iteration = i
 
