@@ -73,17 +73,17 @@ class Trainer():
     train_eval = []
     val_eval = []
 
-    for epoch in trange(self.EPOCHS):
+    for epoch in trange(self.EPOCHS, desc="epochs"):
       train_data_pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
       train_eval_epoch = {}
       val_eval_epoch = {}
       for i, data in train_data_pbar:
         self.net.train()
         self.process_batch(data, noise=self.NOISE)
-        train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, training")
+        train_data_pbar.set_description("training  ")
 
         if i % EVAL_PERIOD == (EVAL_PERIOD - 1) or i == len(train_dataloader) - 1:
-          train_data_pbar.set_description(f"epoch: {epoch + 1}/{self.EPOCHS}, validating")
+          train_data_pbar.set_description("validating")
           train_eval_row = metrics.evaluate_net(self.net, self.criterion, data, self.NUM_CLASSES)
           val_eval_row = metrics.evaluate_net(self.net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
           train_eval_epoch = {col: (train_eval_epoch[col] if col in train_eval_epoch else []) + [val] for (col, val) in train_eval_row.items()}
