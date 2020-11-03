@@ -161,6 +161,11 @@ def simple_cnn_freeze(source_dataset, target_dataset):
     print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
   save_best_result(results, name, "FREEZE")
 
+def all_simple_cnn_freeze():
+  for source_dataset in ["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES"]:
+    for target_dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
+      simple_cnn_freeze(source_dataset, target_dataset)
+
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="Start predefined experiments")
