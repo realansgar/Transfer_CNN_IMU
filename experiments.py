@@ -4,18 +4,17 @@ import os
 from argparse import ArgumentParser
 import torch
 from train import Trainer
-from config import *
+import config
+from config import LOGS_BASEPATH
 
-subject_re = re.compile(r"subject\d\d\d")
-
-def save_best_result(results, name):
+def save_best_result(results, name, key):
   best_loss = float("inf")
   best_result = None
   for result in results:
     if result["best_val"]["loss"] < best_loss:
       best_result = result
   eval_dict = best_result
-  filename = f"{name}_best.pt"
+  filename = f"{name}-{eval_dict['config'][key]}_best.pt"
   os.makedirs(LOGS_BASEPATH, exist_ok=True)
   torch.save(eval_dict, LOGS_BASEPATH + filename)
 
@@ -38,297 +37,72 @@ def determine_frozen_param_idxs(state_dict, layer_num):
   return sorted(freeze_idx)
 
 
-def pamap2_epochs():
-  print("-----pamap2_epochs-----")
-  simple_cnn_results = []
-  for epochs in [20,12,8]:
-    config = PAMAP2.copy()
-    config["NAME"] = f"PAMAP2-Simple_CNN-{epochs}ep"
-    config["MODEL"] = "Simple_CNN"
-    config["EPOCHS"] = epochs
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "PAMAP2-Simple_CNN-ep")
+def base_hyperparameter(dataset, key, values):
+  config_dict = getattr(config, dataset).copy()
+  for model in ["Simple_CNN", "CNN_IMU"]:
+    results = []
+    name = f"{dataset}-{model}-{key}"
+    for value in values:
+      config_dict["NAME"] = f"{name}-{value}"
+      config_dict["MODEL"] = model
+      config_dict[key] = value
+      print(f"-----{config_dict['NAME']}-----")
+      trainer = Trainer(config_dict)
+      eval_dict = trainer.train()
+      results.append(eval_dict)
+      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
+    save_best_result(results, name, key)
 
-  cnn_imu_results = []
-  for epochs in [20,12,8]:
-    config = PAMAP2.copy()
-    config["NAME"] = f"PAMAP2-CNN_IMU-{epochs}ep"
-    config["MODEL"] = "CNN_IMU"
-    config["EPOCHS"] = epochs
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(cnn_imu_results, "PAMAP2-CNN_IMU-ep")
+def base_hyperparameter_order_picking(dataset, key, values):
+  subject_re = re.compile(r"subject\d\d\d")
+  config_dict = getattr(config, dataset).copy()
+  for train_filepath, val_filepath in getattr(config, f"{dataset}_TRAIN_VAL_SET_FILEPATHS"):
+    subject = subject_re.findall(val_filepath)[0]
+    for model in ["Simple_CNN", "CNN_IMU"]:
+      results = []
+      name = f"{dataset}-{subject}-{model}-{key}"
+      for value in values:
+        config_dict["TRAIN_SET_FILEPATH"] = train_filepath
+        config_dict["VAL_SET_FILEPATH"] = val_filepath
+        config_dict["NAME"] = f"{name}-{value}"
+        config_dict["MODEL"] = model
+        config_dict[key] = value
+        trainer = Trainer(config_dict)
+        eval_dict = trainer.train()
+        results.append(eval_dict)
+        print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
+      save_best_result(results, name, key)
+
+
+def pamap2_epochs():
+  base_hyperparameter("PAMAP2", "EPOCHS", [20,12,8])
 
 def pamap2_learning_rate():
-  print("-----pamap2_learning_rate-----")
-  simple_cnn_results = []
-  for lr in [10**-3, 10**-4, 10**-5]:
-    config = PAMAP2.copy()
-    config["NAME"] = f"PAMAP2-Simple_CNN-{lr}lr"
-    config["MODEL"] = "Simple_CNN"
-    config["LEARNING_RATE"] = lr
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "PAMAP2-Simple_CNN-lr")
-
-  cnn_imu_results = []
-  for lr in [10**-3, 10**-4, 10**-5]:
-    config = PAMAP2.copy()
-    config["NAME"] = f"PAMAP2-CNN_IMU-{lr}lr"
-    config["MODEL"] = "CNN_IMU"
-    config["LEARNING_RATE"] = lr
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(cnn_imu_results, "PAMAP2-CNN_IMU-lr")
+  base_hyperparameter("PAMAP2", "LEARNING_RATE", [10**-3, 10**-4, 10**-5])
 
 def opportunity_locomotion_epochs():
-  print("-----opportunity_locomotion_epochs-----")
-  simple_cnn_results = []
-  for epochs in [20,12,8]:
-    config = OPPORTUNITY_LOCOMOTION.copy()
-    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-Simple_CNN-{epochs}ep"
-    config["MODEL"] = "Simple_CNN"
-    config["EPOCHS"] = epochs
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-Simple_CNN-ep")
-
-  cnn_imu_results = []
-  for epochs in [20,12,8]:
-    config = OPPORTUNITY_LOCOMOTION.copy()
-    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-CNN_IMU-{epochs}ep"
-    config["MODEL"] = "CNN_IMU"
-    config["EPOCHS"] = epochs
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(cnn_imu_results, "OPPORTUNITY_LOCOMOTION-CNN_IMU-ep")
+  base_hyperparameter("OPPORTUNITY_LOCOMOTION", "EPOCHS", [20,12,8])
 
 def opportunity_locomotion_learning_rate():
-  print("-----opportunity_locomotion_learning_rate-----")
-  simple_cnn_results = []
-  for lr in [10**-3, 10**-4, 10**-5]:
-    config = OPPORTUNITY_LOCOMOTION.copy()
-    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-Simple_CNN-{lr}lr"
-    config["MODEL"] = "Simple_CNN"
-    config["LEARNING_RATE"] = lr
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-Simple_CNN-lr")
-
-  cnn_imu_results = []
-  for lr in [10**-3, 10**-4, 10**-5]:
-    config = OPPORTUNITY_LOCOMOTION.copy()
-    config["NAME"] = f"OPPORTUNITY_LOCOMOTION-CNN_IMU-{lr}lr"
-    config["MODEL"] = "CNN_IMU"
-    config["LEARNING_RATE"] = lr
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "OPPORTUNITY_LOCOMOTION-CNN_IMU-lr")
+  base_hyperparameter("OPPORTUNITY_LOCOMOTION", "LEARNING_RATE", [10**-3, 10**-4, 10**-5])
 
 def opportunity_gestures_epochs():
-  print("-----opportunity_gestures_epochs-----")
-  simple_cnn_results = []
-  for epochs in [20,12,8]:
-    config = OPPORTUNITY_GESTURES.copy()
-    config["NAME"] = f"OPPORTUNITY_GESTURES-Simple_CNN-{epochs}ep"
-    config["MODEL"] = "Simple_CNN"
-    config["EPOCHS"] = epochs
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-Simple_CNN-ep")
-
-  cnn_imu_results = []
-  for epochs in [20,12,8]:
-    config = OPPORTUNITY_GESTURES.copy()
-    config["NAME"] = f"OPPORTUNITY_GESTURES-CNN_IMU-{epochs}ep"
-    config["MODEL"] = "CNN_IMU"
-    config["EPOCHS"] = epochs
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(cnn_imu_results, "OPPORTUNITY_GESTURES-CNN_IMU-ep")
+  base_hyperparameter("OPPORTUNITY_GESTURES", "EPOCHS", [20,12,8])
 
 def opportunity_gestures_learning_rate():
-  print("-----opportunity_gestures_learning_rate-----")
-  simple_cnn_results = []
-  for lr in [10**-3, 10**-4, 10**-5]:
-    config = OPPORTUNITY_GESTURES.copy()
-    config["NAME"] = f"OPPORTUNITY_GESTURES-Simple_CNN-{lr}lr"
-    config["MODEL"] = "Simple_CNN"
-    config["LEARNING_RATE"] = lr
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    simple_cnn_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-Simple_CNN-lr")
-
-  cnn_imu_results = []
-  for lr in [10**-3, 10**-4, 10**-5]:
-    config = OPPORTUNITY_GESTURES.copy()
-    config["NAME"] = f"OPPORTUNITY_GESTURES-CNN_IMU-{lr}lr"
-    config["MODEL"] = "CNN_IMU"
-    config["LEARNING_RATE"] = lr
-    trainer = Trainer(config)
-    eval_dict = trainer.train()
-    cnn_imu_results.append(eval_dict)
-    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-  save_best_result(simple_cnn_results, "OPPORTUNITY_GESTURES-CNN_IMU-lr")
+  base_hyperparameter("OPPORTUNITY_LOCOMOTION", "LEARNING_RATE", [10**-3, 10**-4, 10**-5])
 
 def order_picking_a_epochs():
-  print("-----order_picking_a_epochs-----")
-  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    simple_cnn_results = []
-    for epochs in [25,20,15]:
-      config = ORDER_PICKING_A.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath
-      config["NAME"] = f"ORDER_PICKING_A-Simple_CNN-{subject}-{epochs}ep"
-      config["MODEL"] = "Simple_CNN"
-      config["EPOCHS"] = epochs
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(simple_cnn_results, f"ORDER_PICKING_A-Simple_CNN-{subject}-ep")
-
-  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    cnn_imu_results = []
-    for epochs in [25,20,15]:
-      config = ORDER_PICKING_A.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath
-      config["NAME"] = f"ORDER_PICKING_A-CNN_IMU-{subject}-{epochs}ep"
-      config["MODEL"] = "CNN_IMU"
-      config["EPOCHS"] = epochs
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(cnn_imu_results, f"ORDER_PICKING_A-CNN_IMU-{subject}-ep")
+  base_hyperparameter_order_picking("ORDER_PICKING_A", "EPOCHS", [25,20,15])
 
 def order_picking_a_learning_rate():
-  print("-----order_picking_a_learning_rate-----")
-  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    simple_cnn_results = []
-    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
-      config = ORDER_PICKING_A.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath
-      config["NAME"] = f"ORDER_PICKING_A-Simple_CNN-{subject}-{lr}lr"
-      config["MODEL"] = "Simple_CNN"
-      config["LEARNING_RATE"] = lr
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(simple_cnn_results, f"ORDER_PICKING_A-Simple_CNN-{subject}-lr")
-
-  for train_filepath, val_filepath in ORDER_PICKING_A_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    cnn_imu_results = []
-    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
-      config = ORDER_PICKING_A.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath      
-      config["NAME"] = f"ORDER_PICKING_A-CNN_IMU-{subject}-{lr}lr"
-      config["MODEL"] = "CNN_IMU"
-      config["LEARNING_RATE"] = lr
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(simple_cnn_results, f"ORDER_PICKING_A-CNN_IMU-{subject}-lr")
+  base_hyperparameter_order_picking("ORDER_PICKING_A", "LEARNING_RATE", [10**-4, 10**-5, 10**-6, 10**-7])
 
 def order_picking_b_epochs():
-  print("-----order_picking_b_epochs-----")
-  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    simple_cnn_results = []
-    for epochs in [25,20,15]:
-      config = ORDER_PICKING_B.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath
-      config["NAME"] = f"ORDER_PICKING_B-Simple_CNN-{subject}-{epochs}ep"
-      config["MODEL"] = "Simple_CNN"
-      config["EPOCHS"] = epochs
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(simple_cnn_results, f"ORDER_PICKING_B-Simple_CNN-{subject}-ep")
-
-  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    cnn_imu_results = []
-    for epochs in [25,20,15]:
-      config = ORDER_PICKING_B.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath
-      config["NAME"] = f"ORDER_PICKING_B-CNN_IMU-{subject}-{epochs}ep"
-      config["MODEL"] = "CNN_IMU"
-      config["EPOCHS"] = epochs
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(cnn_imu_results, f"ORDER_PICKING_B-CNN_IMU-{subject}-ep")
+  base_hyperparameter_order_picking("ORDER_PICKING_B", "EPOCHS", [25,20,15])
 
 def order_picking_b_learning_rate():
-  print("-----order_picking_b_learning_rate-----")
-  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    simple_cnn_results = []
-    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
-      config = ORDER_PICKING_B.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath
-      config["NAME"] = f"ORDER_PICKING_B-Simple_CNN-{subject}-{lr}lr"
-      config["MODEL"] = "Simple_CNN"
-      config["LEARNING_RATE"] = lr
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      simple_cnn_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(simple_cnn_results, f"ORDER_PICKING_B-Simple_CNN-{subject}-lr")
-
-  for train_filepath, val_filepath in ORDER_PICKING_B_TRAIN_VAL_SET_FILEPATHS:
-    subject = subject_re.findall(val_filepath)[0]
-    cnn_imu_results = []
-    for lr in [10**-4, 10**-5, 10**-6, 10**-7]:
-      config = ORDER_PICKING_B.copy()
-      config["TRAIN_SET_FILEPATH"] = train_filepath
-      config["VAL_SET_FILEPATH"] = val_filepath      
-      config["NAME"] = f"ORDER_PICKING_B-CNN_IMU-{subject}-{lr}lr"
-      config["MODEL"] = "CNN_IMU"
-      config["LEARNING_RATE"] = lr
-      trainer = Trainer(config)
-      eval_dict = trainer.train()
-      cnn_imu_results.append(eval_dict)
-      print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
-    save_best_result(simple_cnn_results, f"ORDER_PICKING_B-CNN_IMU-{subject}-lr")
+  base_hyperparameter_order_picking("ORDER_PICKING_B", "LEARNING_RATE", [10**-4, 10**-5, 10**-6, 10**-7])
 
 def all_hyperparameters():
   pamap2_epochs()

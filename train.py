@@ -74,7 +74,7 @@ class Trainer():
     val_eval = []
 
     for epoch in trange(self.EPOCHS, desc="epochs"):
-      train_data_pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
+      train_data_pbar = tqdm(enumerate(train_dataloader), total=len(train_dataloader), leave=False)
       train_eval_epoch = {}
       val_eval_epoch = {}
       for i, data in train_data_pbar:
