@@ -16,10 +16,10 @@ for folder in [ORDER_PICKING_A_BASEPATH, ORDER_PICKING_B_BASEPATH]:
     subject_idx = idx_pattern.findall(filename)[0]
     subjects[subject_idx].append(filename)
   for subject_idx, subject in subjects.items():
-    sensor_list = []
+    sensor_list = [name_pattern.findall(sensor)[0] for sensor in subject]
+    sensor_list.sort(key=lambda x: x[-1] + x) # Acc_L, Gyro_L, Mag_L, ...R, ...T
     subject_data = []
     for sensor in subject:
-      sensor_list.append(name_pattern.findall(sensor)[0])
       data = np.loadtxt(folder + sensor, delimiter=",")
       if len(subject_data) == 0:
         subject_data.append(np.arange(0.01, len(data) * 0.01, 0.01).reshape((-1,1)))
@@ -47,7 +47,7 @@ for folder in [ORDER_PICKING_A_BASEPATH, ORDER_PICKING_B_BASEPATH]:
   lines = ["Data columns:\n\n", "Column: 1 sec\n", "Column: 2 label\n"]
   i = 3
   for sensor in sensor_lists[0]:
-    lines += [f"Column: {i} {sensor} x\n", f"Column: {i+1} {sensor} x\n", f"Column: {i+2} {sensor} x\n"]
+    lines += [f"Column: {i} {sensor}x\n", f"Column: {i+1} {sensor}y\n", f"Column: {i+2} {sensor}z\n"]
     i += 3
   with open(folder + "column_names.txt", "w") as f:
     f.writelines(lines)
