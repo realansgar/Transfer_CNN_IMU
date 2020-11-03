@@ -5,25 +5,29 @@ from argparse import ArgumentParser
 import torch
 from train import Trainer
 import config
-from config import LOGS_BASEPATH
+from config import LOGS_BASEPATH, DEVICE
+
+SAVEALL = False
 
 def save_best_result(results, name, key):
+  os.makedirs(LOGS_BASEPATH, exist_ok=True)
   best_loss = float("inf")
   best_result = None
   for result in results:
+    if SAVEALL:
+      filename = f"{name}-{result['config'][key]}_loss_{result['best_val']['loss']}.pt"
+      torch.save(best_result, LOGS_BASEPATH + filename)
     if result["best_val"]["loss"] < best_loss:
       best_result = result
-  eval_dict = best_result
-  filename = f"{name}-{eval_dict['config'][key]}_best.pt"
-  os.makedirs(LOGS_BASEPATH, exist_ok=True)
-  torch.save(eval_dict, LOGS_BASEPATH + filename)
+  filename = f"{name}-{best_result['config'][key]}_best_loss_{best_result['best_val']['loss']}.pt"
+  torch.save(best_result, LOGS_BASEPATH + filename)
 
 
 def filter_state_dict(state_dict):
   return {k: v for k, v in state_dict.items() if "convolutional_layers" in k}
 
 def determine_frozen_param_idxs(state_dict, layer_num):
-  state_dict = filter_state_dict(state_dict)
+  #state_dict = filter_state_dict(state_dict)
   keys = list(state_dict.keys())
   conv_layer_idx_pattern = re.compile(r".*?(\d)\D*$") # matches the last digit to determine the conv_layer idx
   idxs = sorted(list({conv_layer_idx_pattern.findall(k)[0] for k in keys}))
@@ -116,8 +120,52 @@ def all_hyperparameters():
   order_picking_b_epochs()
   order_picking_b_learning_rate()
 
+
+def base_transfer(source_dataset, target_dataset, freeze=0, mapping=None):
+  filepath = getattr(config, f"{source_dataset}_BEST_NET")
+  eval_dict = torch.load(filepath, map_location=DEVICE)
+  state_dict = eval_dict["net"].state_dict()
+  state_dict = filter_state_dict(state_dict)
+  source_config = getattr(config, source_dataset)
+  target_config = getattr(config, target_dataset)
+  if mapping is not None:
+    imu_branch_pattern = re.compile(r"imu_branches\.(\d+)\..*")
+    idx_mapping = {source_config["BRANCHES"].index(k): [target_config["BRANCHES"].index(t) for t in v] for k, v in mapping.items()}
+    new_state_dict = {}
+    for source_idx, target_idxs in idx_mapping.items():
+      keys = []
+      for k in state_dict:
+        if imu_branch_pattern.findall(k)[0] == str(source_idx):
+          keys.append(k)
+      imu_branch_state_dict = {k: v for k, v in state_dict.items() if k in keys}
+      for target_idx in target_idxs:
+        new_state_dict.update({k.replace(str(source_idx), str(target_idx), 1): v for k, v in imu_branch_state_dict.items()})
+    state_dict = new_state_dict
+  
+  freeze_idx = determine_frozen_param_idxs(state_dict, freeze)
+  return state_dict, freeze_idx
+
+def simple_cnn_freeze(source_dataset, target_dataset):
+  config_dict = getattr(config, target_dataset)
+  for freeze in range(5):
+    results = []
+    name = f"{source_dataset}-{target_dataset}-Simple_CNN-FREEZE"
+    config_dict["NAME"] = f"{name}-{freeze}"
+    config_dict["MODEL"] = "Simple_CNN"
+    config_dict["FREEZE"] = freeze
+    state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, freeze)
+    print(f"-----{config_dict['NAME']}-----")
+    trainer = Trainer(config_dict, state_dict, freeze_idx)
+    eval_dict = trainer.train(save=True)
+    results.append(eval_dict)
+    print(eval_dict["best_val"], f"epoch: {eval_dict['best_epoch']}, iteration: {eval_dict['best_iteration']}\n")
+  save_best_result(results, name, "FREEZE")
+
+
 if __name__ == "__main__":
   parser = ArgumentParser(description="Start predefined experiments")
   parser.add_argument("experiment", help="the experiment to start")
+  parser.add_argument("-s", action="store_true", help="saves all results instead of only the best")
   args = parser.parse_args()
+  SAVEALL = args.s
   globals()[args.experiment]()
