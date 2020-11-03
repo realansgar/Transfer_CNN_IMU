@@ -21,6 +21,7 @@ LOGS_BASEPATH = "logs/"
 DATASETS_BASEPATH = "/data/ozeino/"
 
 EVAL_PERIOD = 50
+MAX_BATCH_SIZE = 1000
 
 # PAMAP2
 

@@ -1,6 +1,6 @@
 import torch
 from torch.functional import F
-from config import DEVICE
+from config import DEVICE, MAX_BATCH_SIZE
 
 def class_confusion(pred_y, data_y, num_classes):
   tp = torch.zeros(num_classes, device=DEVICE)
@@ -92,7 +92,11 @@ def evaluate_net(net, criterion, batch, num_classes):
 
   net.eval()
   with torch.no_grad():
-    raw_y = net(data_x)
+    chunks_y = []
+    for chunk_x in torch.split(data_x, MAX_BATCH_SIZE, dim=0):
+      chunk_y = net(chunk_x)
+      chunks_y.append(chunk_y)
+    raw_y = torch.cat(chunks_y, dim=0)
     loss = criterion(raw_y, data_y)
     prob_y = F.softmax(raw_y, dim=1)
     pred_y = torch.argmax(prob_y, dim=1)
