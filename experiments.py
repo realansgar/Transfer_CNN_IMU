@@ -54,11 +54,11 @@ def determine_frozen_param_idxs(state_dict, layer_num):
 
 
 def base_hyperparameter(dataset, key, values):
-  config_dict = getattr(config, dataset).copy()
   for model in ["Simple_CNN", "CNN_IMU"]:
     results = []
     name = f"{dataset}-{model}-{key}"
     for value in values:
+      config_dict = getattr(config, dataset).copy()
       config_dict["NAME"] = f"{name}-{value}"
       config_dict["MODEL"] = model
       config_dict[key] = value
@@ -72,13 +72,13 @@ def base_hyperparameter(dataset, key, values):
     save_best_result(results, name, key)
 
 def base_hyperparameter_order_picking(dataset, key, values):
-  config_dict = getattr(config, dataset).copy()
   for train_filepath, val_filepath in getattr(config, f"{dataset}_TRAIN_VAL_SET_FILEPATHS"):
     subject = subject_re.findall(val_filepath)[0]
     for model in ["Simple_CNN", "CNN_IMU"]:
       results = []
       name = f"{dataset}-{subject}-{model}-{key}"
       for value in values:
+        config_dict = getattr(config, dataset).copy()
         config_dict["TRAIN_SET_FILEPATH"] = train_filepath
         config_dict["VAL_SET_FILEPATH"] = val_filepath
         config_dict["NAME"] = f"{name}-{value}"
@@ -156,12 +156,12 @@ def base_transfer(source_dataset, target_dataset, freeze=0, mapping=None):
   return state_dict, freeze_idx
 
 def simple_cnn_freeze(source_dataset, target_dataset):
-  config_dict = getattr(config, target_dataset)
   results = []
   for train_filepath, val_filepath in getattr(config, f"{target_dataset}_TRAIN_VAL_SET_FILEPATHS"):
     subject = subject_re.findall(val_filepath)[0]
     for freeze in range(5):
       name = f"{source_dataset}-{target_dataset}-{subject}-Simple_CNN-FREEZE"
+      config_dict = getattr(config, target_dataset)
       config_dict["NAME"] = f"{name}-{freeze}"
       config_dict["MODEL"] = "Simple_CNN"
       config_dict["TRAIN_SET_FILEPATH"] = train_filepath
