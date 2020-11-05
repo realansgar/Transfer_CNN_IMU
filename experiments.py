@@ -17,17 +17,18 @@ def save_best_result(results, name, key):
   best_result_loss = None
   best_result_wf1 = None
   for result in results:
+    eval_dict_loss, eval_dict_wf1 = result
     if SAVEALL:
-      filename = f"{name}-{result['config'][key]}_loss_{result['best_val']['loss']:.4f}.pt"
-      torch.save(result[0], LOGS_BASEPATH + filename)
-      filename = f"{name}-{result['config'][key]}_wf1_{result['best_val']['weighted_f1']:.4f}.pt"
-      torch.save(result[0], LOGS_BASEPATH + filename)
-    if result[0]["best_val"]["loss"] < best_loss:
-      best_loss = result["best_val"]["loss"]
-      best_result_loss = result[0]
-    if result[1]["best_val"]["weighted_f1"] > best_wf1:
-      best_wf1 = result["best_val"]["weighted_f1"]
-      best_result_wf1 = result[1]
+      filename = f"{name}-{eval_dict_loss['config'][key]}_loss_{eval_dict_loss['best_val']['loss']:.4f}.pt"
+      torch.save(eval_dict_loss, LOGS_BASEPATH + filename)
+      filename = f"{name}-{eval_dict_wf1['config'][key]}_wf1_{eval_dict_wf1['best_val']['weighted_f1']:.4f}.pt"
+      torch.save(eval_dict_wf1, LOGS_BASEPATH + filename)
+    if eval_dict_loss["best_val"]["loss"] < best_loss:
+      best_loss = eval_dict_loss["best_val"]["loss"]
+      best_result_loss = eval_dict_loss
+    if eval_dict_wf1["best_val"]["weighted_f1"] > best_wf1:
+      best_wf1 = eval_dict_wf1["best_val"]["weighted_f1"]
+      best_result_wf1 = eval_dict_wf1
   filename = f"{name}-{best_result_loss['config'][key]}_best_loss_{best_result_loss['best_val']['loss']:.4f}_epoch_{best_result_loss['best_epoch']}_iteration_{best_result_loss['best_iteration']}.pt"
   torch.save(best_result_loss, LOGS_BASEPATH + filename)
   filename = f"{name}-{best_result_wf1['config'][key]}_best_wf1_{best_result_wf1['best_val']['weighted_f1']:.4f}_epoch_{best_result_wf1['best_epoch']}_iteration_{best_result_wf1['best_iteration']}.pt"
