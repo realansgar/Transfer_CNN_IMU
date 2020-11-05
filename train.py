@@ -1,13 +1,11 @@
 import torch
 from torch.utils.data import DataLoader
-from datetime import datetime
-import os
 from copy import deepcopy
 from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
 import metrics
-from config import DEVICE, LOGS_BASEPATH, EVAL_PERIOD, DETERMINISTIC
+from config import DEVICE, EVAL_PERIOD, DETERMINISTIC
 
 # pylint: disable=no-member
 class Trainer():
@@ -66,10 +64,14 @@ class Trainer():
     train_dataloader = DataLoader(train_dataset, batch_size=self.BATCH_SIZE, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset))
     
-    best_weights = None
+    best_weights_loss = None
+    best_weights_wf1 = None
     best_val_loss = float("inf")
-    best_epoch = -1
-    best_iteration = -1
+    best_val_wf1 = float("-inf")
+    best_epoch_loss = -1
+    best_iteration_loss = -1
+    best_epoch_wf1 = -1
+    best_iteration_wf1 = -1
     train_eval = []
     val_eval = []
 
@@ -91,21 +93,24 @@ class Trainer():
 
           if val_eval_row["loss"] < best_val_loss:
             best_val_loss = val_eval_row["loss"]
-            best_weights = deepcopy(self.net.state_dict())
-            best_epoch = epoch
-            best_iteration = i
+            best_weights_loss = deepcopy(self.net.state_dict())
+            best_epoch_loss = epoch
+            best_iteration_loss = i
+          if val_eval_row["weighted_f1"] > best_val_wf1:
+            best_val_wf1 = val_eval_row["weighted_f1"]
+            best_weights_wf1 = deepcopy(self.net.state_dict())
+            best_epoch_wf1 = epoch
+            best_iteration_wf1 = i
 
       train_eval += [train_eval_epoch]      
       val_eval += [val_eval_epoch]
 
-    now = datetime.now()
-    nowstr = now.strftime("%d.%m.%y_%H:%M:%S")
-    best_net = self.Selected_CNN(self.config)
-    best_net.load_state_dict(best_weights)
-    best_val = metrics.evaluate_net(best_net, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
-    eval_dict = {"net": best_net, "train": train_eval, "val": val_eval, "config": self.config, "best_val": best_val, "best_epoch": best_epoch, "best_iteration": best_iteration}
-    if save:
-      filename = f"{self.NAME}_{nowstr}.{self.MODEL}.pt"
-      os.makedirs(LOGS_BASEPATH, exist_ok=True)
-      torch.save(eval_dict, LOGS_BASEPATH + filename)
-    return eval_dict
+    best_net_loss = self.Selected_CNN(self.config)
+    best_net_loss.load_state_dict(best_weights_loss)
+    best_net_wf1 = self.Selected_CNN(self.config)
+    best_net_wf1.load_state_dict(best_weights_wf1)
+    best_val_loss = metrics.evaluate_net(best_net_loss, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
+    best_val_wf1 = metrics.evaluate_net(best_net_wf1, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
+    eval_dict_loss = {"net": best_net_loss, "train": train_eval, "val": val_eval, "config": self.config, "best_val": best_val_loss, "best_epoch": best_epoch_loss, "best_iteration": best_iteration_loss}
+    eval_dict_wf1 = {"net": best_net_wf1, "train": train_eval, "val": val_eval, "config": self.config, "best_val": best_val_wf1, "best_epoch": best_epoch_wf1, "best_iteration": best_iteration_wf1}
+    return eval_dict_loss, eval_dict_wf1

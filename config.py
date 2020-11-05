@@ -17,8 +17,8 @@ else:
 # Filepaths
 
 TEST_BASEPATH = "test/"
-LOGS_BASEPATH = "logs/"
-DATASETS_BASEPATH = "/home/oskar/Documents/Datasets/"
+LOGS_BASEPATH = "/data/ozeino/logs/"
+DATASETS_BASEPATH = "/data/ozeino/"
 
 EVAL_PERIOD = 50
 MAX_BATCH_SIZE = 1000
@@ -83,7 +83,7 @@ PAMAP2 = {
   "IMUS": 3,
   "BRANCHES": ["HAND", "CHEST", "ANKLE"],
 
-  "EPOCHS": 12,
+  "EPOCHS": 20,
   "BATCH_SIZE": 50,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -138,7 +138,7 @@ OPPORTUNITY_LOCOMOTION = {
   "IMUS": [36, 9, 9, 9, 9, 9, 6, 6],
   "BRANCHES": ["ACCS", "BACK", "RUA", "RLA", "LUA", "LLA", "L-SHOE", "R-SHOE"],
 
-  "EPOCHS": 12,
+  "EPOCHS": 20,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -230,7 +230,7 @@ OPPORTUNITY_GESTURES = {
   "IMUS": [36, 9, 9, 9, 9, 9, 6, 6],
   "BRANCHES": ["ACCS", "BACK", "RUA", "RLA", "LUA", "LLA", "L-SHOE", "R-SHOE"],
 
-  "EPOCHS": 12,
+  "EPOCHS": 20,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -285,7 +285,7 @@ ORDER_PICKING_A = {
   "IMUS": 3,
   "BRANCHES": ["L-HAND", "R-HAND", "TORSO"],
 
-  "EPOCHS": 20,
+  "EPOCHS": 25,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -341,7 +341,7 @@ ORDER_PICKING_B = {
   "IMUS": 3,
   "BRANCHES": ["L-HAND", "R-HAND", "TORSO"],
 
-  "EPOCHS": 20,
+  "EPOCHS": 25,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
