@@ -4,7 +4,7 @@ channels:
   - defaults
 dependencies:
   - tensorboard
-  - pytorch
+  - pytorch=1.6
   - cpuonly
   - tqdm
   - autopep8
