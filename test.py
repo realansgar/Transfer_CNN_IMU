@@ -25,7 +25,7 @@ def test(eval_dict):
   test_dataloader = DataLoader(test_set, batch_size=len(test_set))
   eval_test = metrics.evaluate_net(eval_dict["net"], torch.nn.CrossEntropyLoss(), next(iter(test_dataloader)), eval_dict["config"]["NUM_CLASSES"])
   eval_dict["test"] = eval_test
-  print(eval_dict["config"]["NAME"], eval_test)
+  print(eval_dict["config"]["NAME"], eval_test, "\n")
   os.makedirs(config.TEST_BASEPATH, exist_ok=True)
   torch.save(eval_dict, f"{config.TEST_BASEPATH}{eval_dict['config']['NAME']}_wf1_{eval_test['weighted_f1']:.4f}.pt")
   return eval_dict
@@ -45,8 +45,7 @@ def test_config(dataset):
       _, eval_dict_wf1 = eval_dict
       eval_dict = test(eval_dict_wf1)
       results.append(eval_dict)
-      print(eval_dict["test"], "\n")
-    result_dict = {k: [eval_dict["test"][k].cpu() for eval_dict in results] for k in results[0]}
+    result_dict = {k: [eval_dict["test"][k].cpu() for eval_dict in results] for k in results[0]["test"]}
     result_dict_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict.items()}
     result_dict_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict.items()})
     result_dict.update(result_dict_mean)
@@ -74,7 +73,7 @@ def test_config_order_picking(dataset):
         eval_dict = test(eval_dict_wf1)
         results.append(eval_dict)
         print(eval_dict["test"], "\n")
-      result_dict = {k: [eval_dict["test"][k] for eval_dict in results] for k in results[0]}
+      result_dict = {k: [eval_dict["test"][k] for eval_dict in results] for k in results[0]["test"]}
       result_dict_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict.items()}
       result_dict_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict.items()})
       result_dict.update(result_dict_mean)
