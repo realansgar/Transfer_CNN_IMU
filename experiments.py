@@ -12,25 +12,25 @@ subject_re = re.compile(r"subject\d\d\d")
 
 def save_best_result(results, name, key):
   os.makedirs(LOGS_BASEPATH, exist_ok=True)
-  best_loss = float("inf")
+  best_acc = float("-inf")
   best_wf1 = float("-inf")
-  best_result_loss = None
+  best_result_acc = None
   best_result_wf1 = None
   for result in results:
-    eval_dict_loss, eval_dict_wf1 = result
+    eval_dict_acc, eval_dict_wf1 = result
     if SAVEALL:
-      filename = f"{name}-{eval_dict_loss['config'][key]}_loss_{eval_dict_loss['best_val']['loss']:.4f}.pt"
-      torch.save(eval_dict_loss, LOGS_BASEPATH + filename)
+      filename = f"{name}-{eval_dict_acc['config'][key]}_acc_{eval_dict_acc['best_val']['micro_accuracy']:.4f}.pt"
+      torch.save(eval_dict_acc, LOGS_BASEPATH + filename)
       filename = f"{name}-{eval_dict_wf1['config'][key]}_wf1_{eval_dict_wf1['best_val']['weighted_f1']:.4f}.pt"
       torch.save(eval_dict_wf1, LOGS_BASEPATH + filename)
-    if eval_dict_loss["best_val"]["loss"] < best_loss:
-      best_loss = eval_dict_loss["best_val"]["loss"]
-      best_result_loss = eval_dict_loss
+    if eval_dict_acc["best_val"]["micro_accuracy"] > best_acc:
+      best_acc = eval_dict_acc["best_val"]["micro_accuracy"]
+      best_result_acc = eval_dict_acc
     if eval_dict_wf1["best_val"]["weighted_f1"] > best_wf1:
       best_wf1 = eval_dict_wf1["best_val"]["weighted_f1"]
       best_result_wf1 = eval_dict_wf1
-  filename = f"{name}-{best_result_loss['config'][key]}_best_loss_{best_result_loss['best_val']['loss']:.4f}_epoch_{best_result_loss['best_epoch']}_iteration_{best_result_loss['best_iteration']}.pt"
-  torch.save(best_result_loss, LOGS_BASEPATH + filename)
+  filename = f"{name}-{best_result_acc['config'][key]}_best_acc_{best_result_acc['best_val']['micro_accuracy']:.4f}_epoch_{best_result_acc['best_epoch']}_iteration_{best_result_acc['best_iteration']}.pt"
+  torch.save(best_result_acc, LOGS_BASEPATH + filename)
   filename = f"{name}-{best_result_wf1['config'][key]}_best_wf1_{best_result_wf1['best_val']['weighted_f1']:.4f}_epoch_{best_result_wf1['best_epoch']}_iteration_{best_result_wf1['best_iteration']}.pt"
   torch.save(best_result_wf1, LOGS_BASEPATH + filename)
 
@@ -66,8 +66,8 @@ def base_hyperparameter(dataset, key, values):
       trainer = Trainer(config_dict)
       eval_dict = trainer.train()
       results.append(eval_dict)
-      eval_dict_loss, eval_dict_wf1 = eval_dict
-      print("LOSS: ", eval_dict_loss["best_val"], f"epoch: {eval_dict_loss['best_epoch']}, iteration: {eval_dict_loss['best_iteration']}\n")
+      eval_dict_acc, eval_dict_wf1 = eval_dict
+      print("ACC: ", eval_dict_acc["best_val"], f"epoch: {eval_dict_acc['best_epoch']}, iteration: {eval_dict_acc['best_iteration']}\n")
       print("WF1: ", eval_dict_wf1["best_val"], f"epoch: {eval_dict_wf1['best_epoch']}, iteration: {eval_dict_wf1['best_iteration']}\n")
     save_best_result(results, name, key)
 
@@ -87,8 +87,8 @@ def base_hyperparameter_order_picking(dataset, key, values):
         trainer = Trainer(config_dict)
         eval_dict = trainer.train()
         results.append(eval_dict)
-        eval_dict_loss, eval_dict_wf1 = eval_dict
-        print("LOSS: ", eval_dict_loss["best_val"], f"epoch: {eval_dict_loss['best_epoch']}, iteration: {eval_dict_loss['best_iteration']}\n")
+        eval_dict_acc, eval_dict_wf1 = eval_dict
+        print("ACC: ", eval_dict_acc["best_val"], f"epoch: {eval_dict_acc['best_epoch']}, iteration: {eval_dict_acc['best_iteration']}\n")
         print("WF1: ", eval_dict_wf1["best_val"], f"epoch: {eval_dict_wf1['best_epoch']}, iteration: {eval_dict_wf1['best_iteration']}\n")
       save_best_result(results, name, key)
 
@@ -156,6 +156,7 @@ def base_transfer(source_dataset, target_dataset, freeze=0, mapping=None):
   return state_dict, freeze_idx
 
 def simple_cnn_freeze(source_dataset, target_dataset):
+  SAVEALL = True
   results = []
   for train_filepath, val_filepath in getattr(config, f"{target_dataset}_TRAIN_VAL_SET_FILEPATHS"):
     subject = subject_re.findall(val_filepath)[0]
@@ -170,10 +171,10 @@ def simple_cnn_freeze(source_dataset, target_dataset):
       state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, freeze)
       print(f"-----{config_dict['NAME']}-----")
       trainer = Trainer(config_dict, state_dict, freeze_idx)
-      eval_dict = trainer.train(save=True)
+      eval_dict = trainer.train()
       results.append(eval_dict)
-      eval_dict_loss, eval_dict_wf1 = eval_dict
-      print("LOSS: ", eval_dict_loss["best_val"], f"epoch: {eval_dict_loss['best_epoch']}, iteration: {eval_dict_loss['best_iteration']}\n")
+      eval_dict_acc, eval_dict_wf1 = eval_dict
+      print("ACC: ", eval_dict_acc["best_val"], f"epoch: {eval_dict_acc['best_epoch']}, iteration: {eval_dict_acc['best_iteration']}\n")
       print("WF1: ", eval_dict_wf1["best_val"], f"epoch: {eval_dict_wf1['best_epoch']}, iteration: {eval_dict_wf1['best_iteration']}\n")
     save_best_result(results, name, "FREEZE")
 

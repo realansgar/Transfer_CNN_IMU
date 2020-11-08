@@ -58,19 +58,19 @@ class Trainer():
 
     return loss
 
-  def train(self, save=False):
+  def train(self):
     train_dataset = HARWindows(self.TRAIN_SET_FILEPATH)
     val_dataset = HARWindows(self.VAL_SET_FILEPATH)
 
     train_dataloader = DataLoader(train_dataset, batch_size=self.BATCH_SIZE, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset))
     
-    best_weights_loss = None
+    best_weights_acc = None
     best_weights_wf1 = None
-    best_val_loss = float("inf")
+    best_val_acc = float("-inf")
     best_val_wf1 = float("-inf")
-    best_epoch_loss = -1
-    best_iteration_loss = -1
+    best_epoch_acc = -1
+    best_iteration_acc = -1
     best_epoch_wf1 = -1
     best_iteration_wf1 = -1
     train_eval = []
@@ -92,11 +92,11 @@ class Trainer():
           train_eval_epoch = {col: (train_eval_epoch[col] if col in train_eval_epoch else []) + [val] for (col, val) in train_eval_row.items()}
           val_eval_epoch = {col: (val_eval_epoch[col] if col in val_eval_epoch else []) + [val] for (col, val) in val_eval_row.items()}
 
-          if val_eval_row["loss"] < best_val_loss:
-            best_val_loss = val_eval_row["loss"]
-            best_weights_loss = deepcopy(self.net.state_dict())
-            best_epoch_loss = epoch
-            best_iteration_loss = i
+          if val_eval_row["micro_accuracy"] > best_val_acc:
+            best_val_acc = val_eval_row["micro_accuracy"]
+            best_weights_acc = deepcopy(self.net.state_dict())
+            best_epoch_acc = epoch
+            best_iteration_acc = i
           if val_eval_row["weighted_f1"] > best_val_wf1:
             best_val_wf1 = val_eval_row["weighted_f1"]
             best_weights_wf1 = deepcopy(self.net.state_dict())
@@ -106,12 +106,12 @@ class Trainer():
       train_eval += [train_eval_epoch]      
       val_eval += [val_eval_epoch]
 
-    best_net_loss = self.Selected_CNN(self.config)
-    best_net_loss.load_state_dict(best_weights_loss)
+    best_net_acc = self.Selected_CNN(self.config)
+    best_net_acc.load_state_dict(best_weights_acc)
     best_net_wf1 = self.Selected_CNN(self.config)
     best_net_wf1.load_state_dict(best_weights_wf1)
-    best_val_loss = metrics.evaluate_net(best_net_loss, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
+    best_val_acc = metrics.evaluate_net(best_net_acc, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
     best_val_wf1 = metrics.evaluate_net(best_net_wf1, self.criterion, next(iter(val_dataloader)), self.NUM_CLASSES)
-    eval_dict_loss = {"net": best_net_loss, "train": train_eval, "val": val_eval, "config": self.config, "best_val": best_val_loss, "best_epoch": best_epoch_loss, "best_iteration": best_iteration_loss}
+    eval_dict_acc = {"net": best_net_acc, "train": train_eval, "val": val_eval, "config": self.config, "best_val": best_val_acc, "best_epoch": best_epoch_acc, "best_iteration": best_iteration_acc}
     eval_dict_wf1 = {"net": best_net_wf1, "train": train_eval, "val": val_eval, "config": self.config, "best_val": best_val_wf1, "best_epoch": best_epoch_wf1, "best_iteration": best_iteration_wf1}
-    return eval_dict_loss, eval_dict_wf1
+    return eval_dict_acc, eval_dict_wf1

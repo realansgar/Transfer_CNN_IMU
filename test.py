@@ -20,37 +20,48 @@ def test_filepath(filepath):
   eval_dict = torch.load(filepath, map_location=config.DEVICE)
   test(eval_dict)
 
-def test(eval_dict):
+def test(eval_dict, acc=False):
   test_set = HARWindows(eval_dict["config"]["TEST_SET_FILEPATH"])
   test_dataloader = DataLoader(test_set, batch_size=len(test_set))
   eval_test = metrics.evaluate_net(eval_dict["net"], torch.nn.CrossEntropyLoss(), next(iter(test_dataloader)), eval_dict["config"]["NUM_CLASSES"])
   eval_dict["test"] = eval_test
   print(eval_dict["config"]["NAME"], eval_test, "\n")
   os.makedirs(config.TEST_BASEPATH, exist_ok=True)
-  torch.save(eval_dict, f"{config.TEST_BASEPATH}{eval_dict['config']['NAME']}_wf1_{eval_test['weighted_f1']:.4f}.pt")
+  if acc:
+    torch.save(eval_dict, f"{config.TEST_BASEPATH}{eval_dict['config']['NAME']}_acc_{eval_test['micro_accuracy']:.4f}.pt")
+  else:
+    torch.save(eval_dict, f"{config.TEST_BASEPATH}{eval_dict['config']['NAME']}_wf1_{eval_test['weighted_f1']:.4f}.pt")
   return eval_dict
 
 def test_config(dataset):
   config.DETERMINISTIC = False
   for model in ["Simple_CNN", "CNN_IMU"]:
-    results = []
+    results_acc, results_wf1 = [], []
     for i in range(config.TEST_REPETITIONS):
       config_dict = getattr(config, dataset).copy()
-      name = config_dict["NAME"]
+      name = f"{dataset}-{model}"
       config_dict["NAME"] = f"{name}-{i}"
       config_dict["MODEL"] = model
       print(f"-----{config_dict['NAME']}-----")
       trainer = Trainer(config_dict)
       eval_dict = trainer.train()
-      _, eval_dict_wf1 = eval_dict
-      eval_dict = test(eval_dict_wf1)
-      results.append(eval_dict)
-    result_dict = {k: [eval_dict["test"][k].cpu() for eval_dict in results] for k in results[0]["test"]}
-    result_dict_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict.items()}
-    result_dict_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict.items()})
-    result_dict.update(result_dict_mean)
-    result_dict.update(result_dict_conf)
-    torch.save(result_dict, f"{config.TEST_BASEPATH}{name}_results.pt")
+      eval_dict_acc, eval_dict_wf1 = eval_dict
+      eval_dict_wf1 = test(eval_dict_wf1)
+      eval_dict_acc = test(eval_dict_acc, acc=True)
+      results_acc.append(eval_dict_acc)
+      results_wf1.append(eval_dict_wf1)
+    result_dict_acc = {k: [eval_dict["test"][k].cpu() for eval_dict in results_acc] for k in results_acc[0]["test"]}
+    result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items()}
+    result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items()})
+    result_dict_acc.update(result_dict_acc_mean)
+    result_dict_acc.update(result_dict_acc_conf)
+    torch.save(result_dict_acc, f"{config.TEST_BASEPATH}{name}_results_acc_{result_dict_acc['micro_accuracy_mean']}.pt")
+    result_dict_wf1 = {k: [eval_dict["test"][k].cpu() for eval_dict in results_wf1] for k in results_wf1[0]["test"]}
+    result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items()}
+    result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items()})
+    result_dict_wf1.update(result_dict_wf1_mean)
+    result_dict_wf1.update(result_dict_wf1_conf)
+    torch.save(result_dict_wf1, f"{config.TEST_BASEPATH}{name}_results_wf1_{result_dict_wf1['weighted_f1_mean']}.pt")
 
 def test_config_order_picking(dataset):
   config.DETERMINISTIC = False
@@ -58,7 +69,7 @@ def test_config_order_picking(dataset):
     subject = subject_re.findall(val_filepath)[0]
     for model in ["Simple_CNN", "CNN_IMU"]:
       name = f"{dataset}-{subject}"
-      results = []
+      results_acc, results_wf1 = [], []
       for i in range(config.TEST_REPETITIONS):
         config_dict = getattr(config, dataset).copy()
         config_dict["NAME"] = f"{name}-{i}"
@@ -69,16 +80,23 @@ def test_config_order_picking(dataset):
         print(f"-----{config_dict['NAME']}-----")
         trainer = Trainer(config_dict)
         eval_dict = trainer.train()
-        _, eval_dict_wf1 = eval_dict
-        eval_dict = test(eval_dict_wf1)
-        results.append(eval_dict)
-        print(eval_dict["test"], "\n")
-      result_dict = {k: [eval_dict["test"][k] for eval_dict in results] for k in results[0]["test"]}
-      result_dict_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict.items()}
-      result_dict_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict.items()})
-      result_dict.update(result_dict_mean)
-      result_dict.update(result_dict_conf)
-      torch.save(result_dict, f"{config.TEST_BASEPATH}{name}_results.pt")
+        eval_dict_acc, eval_dict_wf1 = eval_dict
+        eval_dict_wf1 = test(eval_dict_wf1)
+        eval_dict_acc = test(eval_dict_acc, acc=True)
+        results_acc.append(eval_dict_acc)
+        results_wf1.append(eval_dict_wf1)
+      result_dict_acc = {k: [eval_dict["test"][k].cpu() for eval_dict in results_acc] for k in results_acc[0]["test"]}
+      result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items()}
+      result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items()})
+      result_dict_acc.update(result_dict_acc_mean)
+      result_dict_acc.update(result_dict_acc_conf)
+      torch.save(result_dict_acc, f"{config.TEST_BASEPATH}{name}_results_acc_{result_dict_acc['micro_accuracy_mean']}.pt")
+      result_dict_wf1 = {k: [eval_dict["test"][k].cpu() for eval_dict in results_wf1] for k in results_wf1[0]["test"]}
+      result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items()}
+      result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items()})
+      result_dict_wf1.update(result_dict_wf1_mean)
+      result_dict_wf1.update(result_dict_wf1_conf)
+      torch.save(result_dict_wf1, f"{config.TEST_BASEPATH}{name}_results_wf1_{result_dict_wf1['weighted_f1_mean']}.pt")
 
 def test_all_learning_rate():
   for dataset in ["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES"]:
