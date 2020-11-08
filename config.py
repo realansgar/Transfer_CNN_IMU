@@ -84,7 +84,7 @@ PAMAP2 = {
   "IMUS": 3,
   "BRANCHES": ["HAND", "CHEST", "ANKLE"],
 
-  "EPOCHS": 20,
+  "EPOCHS": 8,
   "BATCH_SIZE": 50,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -139,7 +139,7 @@ OPPORTUNITY_LOCOMOTION = {
   "IMUS": [36, 9, 9, 9, 9, 9, 6, 6],
   "BRANCHES": ["ACCS", "BACK", "RUA", "RLA", "LUA", "LLA", "L-SHOE", "R-SHOE"],
 
-  "EPOCHS": 20,
+  "EPOCHS": 8,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -231,7 +231,7 @@ OPPORTUNITY_GESTURES = {
   "IMUS": [36, 9, 9, 9, 9, 9, 6, 6],
   "BRANCHES": ["ACCS", "BACK", "RUA", "RLA", "LUA", "LLA", "L-SHOE", "R-SHOE"],
 
-  "EPOCHS": 20,
+  "EPOCHS": 8,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -286,7 +286,7 @@ ORDER_PICKING_A = {
   "IMUS": 3,
   "BRANCHES": ["L-HAND", "R-HAND", "TORSO"],
 
-  "EPOCHS": 25,
+  "EPOCHS": 20,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
@@ -343,7 +343,7 @@ ORDER_PICKING_B = {
   "IMUS": 3,
   "BRANCHES": ["L-HAND", "R-HAND", "TORSO"],
 
-  "EPOCHS": 25,
+  "EPOCHS": 20,
   "BATCH_SIZE": 100,
   "NUM_KERNELS": 64,
   "KERNEL_LENGTH": 5,
