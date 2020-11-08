@@ -5,7 +5,8 @@ from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
 import metrics
-from config import DEVICE, EVAL_PERIOD, DETERMINISTIC
+import config as c
+from config import DEVICE, EVAL_PERIOD
 
 # pylint: disable=no-member
 class Trainer():
@@ -13,7 +14,7 @@ class Trainer():
     self.config = config
     list(map(lambda item: setattr(self, *item), config.items()))
 
-    if DETERMINISTIC:
+    if c.DETERMINISTIC:
       torch.manual_seed(42)
     self.Selected_CNN = getattr(CNN, self.MODEL)
     self.net = self.Selected_CNN(self.config).to(DEVICE)

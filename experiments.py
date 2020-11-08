@@ -109,7 +109,7 @@ def opportunity_gestures_epochs():
   base_hyperparameter("OPPORTUNITY_GESTURES", "EPOCHS", [20,12,8])
 
 def opportunity_gestures_learning_rate():
-  base_hyperparameter("OPPORTUNITY_LOCOMOTION", "LEARNING_RATE", [10**-3, 10**-4, 10**-5])
+  base_hyperparameter("OPPORTUNITY_GESTURES", "LEARNING_RATE", [10**-3, 10**-4, 10**-5])
 
 def order_picking_a_epochs():
   base_hyperparameter_order_picking("ORDER_PICKING_A", "EPOCHS", [25,20,15])

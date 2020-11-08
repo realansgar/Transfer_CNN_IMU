@@ -16,7 +16,7 @@ else:
 
 # Filepaths
 
-TEST_BASEPATH = "test/"
+TEST_BASEPATH = "/data/ozeino/test/"
 LOGS_BASEPATH = "/data/ozeino/logs/"
 DATASETS_BASEPATH = "/data/ozeino/"
 
