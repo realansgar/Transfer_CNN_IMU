@@ -31,6 +31,7 @@ def test(eval_dict):
   return eval_dict
 
 def test_config(dataset):
+  config.DETERMINISTIC = False
   for model in ["Simple_CNN", "CNN_IMU"]:
     results = []
     for i in range(config.TEST_REPETITIONS):
@@ -53,6 +54,7 @@ def test_config(dataset):
     torch.save(result_dict, f"{config.TEST_BASEPATH}{name}_results.pt")
 
 def test_config_order_picking(dataset):
+  config.DETERMINISTIC = False
   for train_filepath, val_filepath in getattr(config, f"{dataset}_TRAIN_VAL_SET_FILEPATHS"):
     subject = subject_re.findall(val_filepath)[0]
     for model in ["Simple_CNN", "CNN_IMU"]:
