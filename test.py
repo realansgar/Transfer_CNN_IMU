@@ -62,6 +62,7 @@ def test_config_order_picking(dataset):
         config_dict = getattr(config, dataset).copy()
         config_dict["NAME"] = f"{name}-{i}"
         config_dict["MODEL"] = model
+        config_dict["LEARNING_RATE"] = config_dict[f"{model}_LEARNING_RATE"]
         config_dict["TRAIN_SET_FILEPATH"] = train_filepath
         config_dict["VAL_SET_FILEPATH"] = val_filepath
         print(f"-----{config_dict['NAME']}-----")
@@ -78,10 +79,16 @@ def test_config_order_picking(dataset):
       result_dict.update(result_dict_conf)
       torch.save(result_dict, f"{config.TEST_BASEPATH}{name}_results.pt")
 
+def test_all_learning_rate():
+  for dataset in ["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES"]:
+    test_config(dataset)
+  for dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
+    test_config_order_picking(dataset)
+
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="Display logs and test saved model")
-  parser.add_argument("method", choices=["log", "test"], help="the function to call")
+  parser.add_argument("method", help="the function to call")
   parser.add_argument("files", type=FileType("r"), nargs="*", help="the files to log or test")
   args = parser.parse_args()
 
