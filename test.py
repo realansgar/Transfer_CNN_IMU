@@ -92,5 +92,8 @@ if __name__ == "__main__":
   parser.add_argument("files", type=FileType("r"), nargs="*", help="the files to log or test")
   args = parser.parse_args()
 
-  for file in args.files:
-    globals()[args.method](file.name)
+  if len(args.files) == 0:
+    globals()[args.method]()
+  else:
+    for file in args.files:
+      globals()[args.method](file.name)
