@@ -156,7 +156,6 @@ def base_transfer(source_dataset, target_dataset, freeze=0, mapping=None):
   return state_dict, freeze_idx
 
 def simple_cnn_freeze(source_dataset, target_dataset):
-  SAVEALL = True
   results = []
   for train_filepath, val_filepath in getattr(config, f"{target_dataset}_TRAIN_VAL_SET_FILEPATHS"):
     subject = subject_re.findall(val_filepath)[0]
