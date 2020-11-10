@@ -25,7 +25,7 @@ def test(eval_dict, acc=False):
   test_dataloader = DataLoader(test_set, batch_size=len(test_set))
   eval_test = metrics.evaluate_net(eval_dict["net"], torch.nn.CrossEntropyLoss(), next(iter(test_dataloader)), eval_dict["config"]["NUM_CLASSES"])
   eval_dict["test"] = eval_test
-  print(eval_dict["config"]["NAME"], eval_test, "\n")
+  print(eval_dict["config"]["NAME"], "ACC" if acc else "WF1", eval_test, "\n")
   os.makedirs(config.TEST_BASEPATH, exist_ok=True)
   if acc:
     torch.save(eval_dict, f"{config.TEST_BASEPATH}{eval_dict['config']['NAME']}_acc_{eval_test['micro_accuracy']:.4f}.pt")
@@ -51,14 +51,14 @@ def test_config(dataset):
       results_acc.append(eval_dict_acc)
       results_wf1.append(eval_dict_wf1)
     result_dict_acc = {k: [eval_dict["test"][k].cpu() for eval_dict in results_acc] for k in results_acc[0]["test"]}
-    result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items()}
-    result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items()})
+    result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items() if "class_" not in k}
+    result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items() if "class_" not in k})
     result_dict_acc.update(result_dict_acc_mean)
     result_dict_acc.update(result_dict_acc_conf)
     torch.save(result_dict_acc, f"{config.TEST_BASEPATH}{name}_results_acc_{result_dict_acc['micro_accuracy_mean']}.pt")
     result_dict_wf1 = {k: [eval_dict["test"][k].cpu() for eval_dict in results_wf1] for k in results_wf1[0]["test"]}
-    result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items()}
-    result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items()})
+    result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items() if "class_" not in k}
+    result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items() if "class_" not in k})
     result_dict_wf1.update(result_dict_wf1_mean)
     result_dict_wf1.update(result_dict_wf1_conf)
     torch.save(result_dict_wf1, f"{config.TEST_BASEPATH}{name}_results_wf1_{result_dict_wf1['weighted_f1_mean']}.pt")
@@ -81,19 +81,19 @@ def test_config_order_picking(dataset):
         trainer = Trainer(config_dict)
         eval_dict = trainer.train()
         eval_dict_acc, eval_dict_wf1 = eval_dict
-        eval_dict_wf1 = test(eval_dict_wf1)
-        eval_dict_acc = test(eval_dict_acc, acc=True)
+        print(eval_dict_acc["config"]["NAME"], "ACC", eval_dict_acc["best_val"], "\n")
+        print(eval_dict_wf1["config"]["NAME"], "WF1", eval_dict_wf1["best_val"], "\n")
         results_acc.append(eval_dict_acc)
         results_wf1.append(eval_dict_wf1)
-      result_dict_acc = {k: [eval_dict["test"][k].cpu() for eval_dict in results_acc] for k in results_acc[0]["test"]}
-      result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items()}
-      result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items()})
+      result_dict_acc = {k: [eval_dict["best_val"][k].cpu() for eval_dict in results_acc] for k in results_acc[0]["best_val"]}
+      result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items() if "class_" not in k}
+      result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items() if "class_" not in k})
       result_dict_acc.update(result_dict_acc_mean)
       result_dict_acc.update(result_dict_acc_conf)
       torch.save(result_dict_acc, f"{config.TEST_BASEPATH}{name}_results_acc_{result_dict_acc['micro_accuracy_mean']}.pt")
-      result_dict_wf1 = {k: [eval_dict["test"][k].cpu() for eval_dict in results_wf1] for k in results_wf1[0]["test"]}
-      result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items()}
-      result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items()})
+      result_dict_wf1 = {k: [eval_dict["best_val"][k].cpu() for eval_dict in results_wf1] for k in results_wf1[0]["best_val"]}
+      result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items() if "class_" not in k}
+      result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items() if "class_" not in k})
       result_dict_wf1.update(result_dict_wf1_mean)
       result_dict_wf1.update(result_dict_wf1_conf)
       torch.save(result_dict_wf1, f"{config.TEST_BASEPATH}{name}_results_wf1_{result_dict_wf1['weighted_f1_mean']}.pt")
