@@ -68,6 +68,11 @@ def accuracy(pred_y, data_y, num_classes, weighted=False):
 
   return acc
 
+def class_f1_score(pred_y, data_y, num_classes):
+  class_precision, class_recall = class_precision_recall(pred_y, data_y, num_classes)
+  class_f1 = 2 * (class_precision * class_recall) / (class_precision + class_recall)
+  class_f1[torch.isnan(class_f1)] = 0
+  return class_f1
 
 def f1_score(pred_y, data_y, num_classes, weighted=False):
   if weighted:
@@ -76,10 +81,9 @@ def f1_score(pred_y, data_y, num_classes, weighted=False):
   else:
     class_weights = num_classes ** -1
 
-  class_precision, class_recall = class_precision_recall(pred_y, data_y, num_classes)
-  class_f1 = 2 * class_weights * (class_precision * class_recall) / (class_precision + class_recall)
-  class_f1[torch.isnan(class_f1)] = 0
-  f1 = torch.sum(class_f1)
+  class_f1 = class_f1_score(pred_y, data_y, num_classes)
+  weighted_class_f1 = class_weights * class_f1
+  f1 = torch.sum(weighted_class_f1)
   
   return f1
 
@@ -104,13 +108,16 @@ def evaluate_net(net, criterion, batch, num_classes):
     precision, recall = precision_recall(pred_y, data_y, num_classes)
     weighted_precision, weighted_recall = precision_recall(pred_y, data_y, num_classes, weighted=True)
     micro_acc = torch.sum(pred_y == data_y) / float(len(data_y))
+    class_acc = class_accuracy(pred_y, data_y, num_classes)
     acc = accuracy(pred_y, data_y, num_classes)
+    class_f1 = class_f1_score(pred_y, data_y, num_classes)
     weighted_acc = accuracy(pred_y, data_y, num_classes, weighted=True)
     f1 = f1_score(pred_y, data_y, num_classes)
     weighted_f1 = f1_score(pred_y, data_y, num_classes, weighted=True)
 
     return {
       "loss": loss,
+      "class_accuracy": class_acc,
       "micro_accuracy": micro_acc,
       "accuracy": acc,
       "weighted_accuracy": weighted_acc,
@@ -118,6 +125,7 @@ def evaluate_net(net, criterion, batch, num_classes):
       "weighted_precision": weighted_precision,
       "recall": recall,
       "weighted_recall": weighted_recall,
+      "class_f1": class_f1,
       "f1": f1,
       "weighted_f1": weighted_f1
     }
