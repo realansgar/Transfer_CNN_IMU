@@ -12,13 +12,28 @@ import metrics
 
 subject_re = re.compile(r"subject\d\d\d")
 
-def log(filepath):
-  eval_dict = torch.load(filepath, map_location=config.DEVICE)
-  print({k: v for k, v in eval_dict.items() if k not in ["net", "train", "val"]})
+def log_mean_conf(filepaths):
+  eval_dicts = [torch.load(filepath, map_location=config.DEVICE) for filepath in filepaths]
+  _, mean, conf = get_aggr_mean_conf(eval_dicts, key="best_val")
+  print(mean, conf)
 
-def test_filepath(filepath):
-  eval_dict = torch.load(filepath, map_location=config.DEVICE)
-  test(eval_dict)
+def get_aggr_mean_conf(eval_dicts, key="test"):
+  result_dict = {k: [eval_dict[key][k].cpu() for eval_dict in eval_dicts] for k in eval_dicts[0][key]}
+  result_dict_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict.items() if "class_" not in k}
+  result_dict_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict.items() if "class_" not in k})
+  result_dict.update(result_dict_mean)
+  result_dict.update(result_dict_conf)
+  return result_dict, result_dict_mean, result_dict_conf
+
+def log(filepaths):
+  for filepath in filepaths:
+    eval_dict = torch.load(filepath, map_location=config.DEVICE)
+    print({k: v for k, v in eval_dict.items() if k not in ["net", "train", "val"]})
+
+def test_filepath(filepaths):
+  for filepath in filepaths:
+    eval_dict = torch.load(filepath, map_location=config.DEVICE)
+    test(eval_dict)
 
 def test(eval_dict, acc=False):
   test_set = HARWindows(eval_dict["config"]["TEST_SET_FILEPATH"])
@@ -50,25 +65,19 @@ def test_config(dataset):
       eval_dict_acc = test(eval_dict_acc, acc=True)
       results_acc.append(eval_dict_acc)
       results_wf1.append(eval_dict_wf1)
-    result_dict_acc = {k: [eval_dict["test"][k].cpu() for eval_dict in results_acc] for k in results_acc[0]["test"]}
-    result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items() if "class_" not in k}
-    result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items() if "class_" not in k})
-    result_dict_acc.update(result_dict_acc_mean)
-    result_dict_acc.update(result_dict_acc_conf)
+    result_dict_acc, _, _ = get_aggr_mean_conf(results_acc)
     torch.save(result_dict_acc, f"{config.TEST_BASEPATH}{name}_results_acc_{result_dict_acc['micro_accuracy_mean']}.pt")
-    result_dict_wf1 = {k: [eval_dict["test"][k].cpu() for eval_dict in results_wf1] for k in results_wf1[0]["test"]}
-    result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items() if "class_" not in k}
-    result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items() if "class_" not in k})
-    result_dict_wf1.update(result_dict_wf1_mean)
-    result_dict_wf1.update(result_dict_wf1_conf)
+    result_dict_wf1, _, _ = get_aggr_mean_conf(results_wf1)
     torch.save(result_dict_wf1, f"{config.TEST_BASEPATH}{name}_results_wf1_{result_dict_wf1['weighted_f1_mean']}.pt")
 
 def test_config_order_picking(dataset):
   config.DETERMINISTIC = False
+  subject_results_acc = {"Simple_CNN": [], "CNN_IMU": []}
+  subject_results_wf1 = {"Simple_CNN": [], "CNN_IMU": []}
   for train_filepath, val_filepath in getattr(config, f"{dataset}_TRAIN_VAL_SET_FILEPATHS"):
     subject = subject_re.findall(val_filepath)[0]
     for model in ["Simple_CNN", "CNN_IMU"]:
-      name = f"{dataset}-{subject}"
+      name = f"{dataset}-{model}-{subject}"
       results_acc, results_wf1 = [], []
       for i in range(config.TEST_REPETITIONS):
         config_dict = getattr(config, dataset).copy()
@@ -84,19 +93,23 @@ def test_config_order_picking(dataset):
         print(eval_dict_acc["config"]["NAME"], "ACC", eval_dict_acc["best_val"], "\n")
         print(eval_dict_wf1["config"]["NAME"], "WF1", eval_dict_wf1["best_val"], "\n")
         results_acc.append(eval_dict_acc)
+        subject_results_acc[model].append(eval_dict_acc)
         results_wf1.append(eval_dict_wf1)
-      result_dict_acc = {k: [eval_dict["best_val"][k].cpu() for eval_dict in results_acc] for k in results_acc[0]["best_val"]}
-      result_dict_acc_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_acc.items() if "class_" not in k}
-      result_dict_acc_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_acc.items() if "class_" not in k})
-      result_dict_acc.update(result_dict_acc_mean)
-      result_dict_acc.update(result_dict_acc_conf)
+        subject_results_wf1[model].append(eval_dict_wf1)
+      result_dict_acc, _, _ = get_aggr_mean_conf(results_acc, key="best_val")
       torch.save(result_dict_acc, f"{config.TEST_BASEPATH}{name}_results_acc_{result_dict_acc['micro_accuracy_mean']}.pt")
-      result_dict_wf1 = {k: [eval_dict["best_val"][k].cpu() for eval_dict in results_wf1] for k in results_wf1[0]["best_val"]}
-      result_dict_wf1_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict_wf1.items() if "class_" not in k}
-      result_dict_wf1_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict_wf1.items() if "class_" not in k})
-      result_dict_wf1.update(result_dict_wf1_mean)
-      result_dict_wf1.update(result_dict_wf1_conf)
+      result_dict_wf1, _, _ = get_aggr_mean_conf(results_wf1, key="best_val")
       torch.save(result_dict_wf1, f"{config.TEST_BASEPATH}{name}_results_wf1_{result_dict_wf1['weighted_f1_mean']}.pt")
+  for k, v in subject_results_acc.items():
+    _, mean, conf = get_aggr_mean_conf(v, key="best_val")
+    mean.update(conf)
+    torch.save(mean, f"{config.TEST_BASEPATH}{dataset}-{k}_mean_results_acc_{mean['micro_accuracy_mean']}.pt")
+  for k, v in subject_results_wf1.items():
+    _, mean, conf = get_aggr_mean_conf(v, key="best_val")
+    mean.update(conf)
+    torch.save(mean, f"{config.TEST_BASEPATH}{dataset}-{k}_mean_results_wf1_{mean['weighted_f1_mean']}.pt")
+  
+      
 
 def test_all_learning_rate():
   for dataset in ["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES"]:
@@ -114,5 +127,5 @@ if __name__ == "__main__":
   if len(args.files) == 0:
     globals()[args.method]()
   else:
-    for file in args.files:
-      globals()[args.method](file.name)
+    f_paths = [file.name for file in args.files]
+    globals()[args.method](f_paths)
