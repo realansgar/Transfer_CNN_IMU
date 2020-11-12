@@ -131,8 +131,8 @@ def all_hyperparameters():
   order_picking_b_learning_rate()
 
 
-def base_transfer(source_dataset, target_dataset, freeze=0, mapping=None):
-  filepath = getattr(config, f"{source_dataset}_BEST_NET")
+def base_transfer(source_dataset, target_dataset, model, freeze=0, mapping=None):
+  filepath = getattr(config, f"{source_dataset}_BEST_{model}")
   eval_dict = torch.load(filepath, map_location=DEVICE)
   state_dict = eval_dict["net"].state_dict()
   state_dict = filter_state_dict(state_dict)
@@ -160,14 +160,14 @@ def simple_cnn_freeze(source_dataset, target_dataset):
   for train_filepath, val_filepath in getattr(config, f"{target_dataset}_TRAIN_VAL_SET_FILEPATHS"):
     subject = subject_re.findall(val_filepath)[0]
     for freeze in range(5):
-      name = f"{source_dataset}-{target_dataset}-{subject}-Simple_CNN-FREEZE"
+      name = f"{source_dataset}-{target_dataset}-Simple_CNN-{subject}-FREEZE"
       config_dict = getattr(config, target_dataset)
       config_dict["NAME"] = f"{name}-{freeze}"
       config_dict["MODEL"] = "Simple_CNN"
       config_dict["TRAIN_SET_FILEPATH"] = train_filepath
       config_dict["VAL_SET_FILEPATH"] = val_filepath
       config_dict["FREEZE"] = freeze
-      state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, freeze)
+      state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, "Simple_CNN", freeze)
       print(f"-----{config_dict['NAME']}-----")
       trainer = Trainer(config_dict, state_dict, freeze_idx)
       eval_dict = trainer.train()

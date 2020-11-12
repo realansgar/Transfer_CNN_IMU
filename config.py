@@ -17,7 +17,8 @@ else:
 # Filepaths
 
 TEST_BASEPATH = "/data/ozeino/test/"
-LOGS_BASEPATH = "/data/ozeino/logs/"
+LOGS_BASEPATH = "/data/ozeino/logs_freeze/"
+MODELS_BASEPATH = "/data/ozeino/models/"
 DATASETS_BASEPATH = "/data/ozeino/"
 
 TEST_REPETITIONS = 5
@@ -27,6 +28,9 @@ MAX_BATCH_SIZE = 1000
 # PAMAP2
 
 ## PAMAP2 Filepaths
+
+PAMAP2_BEST_Simple_CNN = MODELS_BASEPATH + "PAMAP2-Simple_CNN-LEARNING_RATE-0.001_best_wf1_0.9026_epoch_3_iteration_349.pt"
+PAMAP2_BEST_CNN_IMU = MODELS_BASEPATH + "PAMAP2-CNN_IMU-LEARNING_RATE-0.001_best_wf1_0.9154_epoch_6_iteration_49.pt"
 
 PAMAP2_BASEPATH = DATASETS_BASEPATH + "PAMAP2/Protocol/"
 PAMAP2_FILENAMES = [f"subject10{i}.dat" for i in range(1,10)]
@@ -101,6 +105,9 @@ PAMAP2 = {
 
 ## Opportunity Locomotion filepaths
 
+OPPORTUNITY_LOCOMOTION_BEST_Simple_CNN = MODELS_BASEPATH + "OPPORTUNITY_LOCOMOTION-Simple_CNN-LEARNING_RATE-0.001_best_wf1_0.8652_epoch_6_iteration_499.pt"
+OPPORTUNITY_LOCOMOTION_BEST_CNN_IMU = MODELS_BASEPATH + "OPPORTUNITY_LOCOMOTION-CNN_IMU-LEARNING_RATE-0.001_best_wf1_0.8825_epoch_4_iteration_299.pt"
+
 OPPORTUNITY_LOCOMOTION_BASEPATH = DATASETS_BASEPATH + "Opportunity_Locomotion/dataset/"
 OPPORTUNITY_LOCOMOTION_FILENAMES = {f"S{i}-ADL{j}.dat" for i in range(1,5) for j in range(1,6)} | {f"S{i}-Drill.dat" for i in range(1,5)}
 OPPORTUNITY_LOCOMOTION_FILEPATHS = {OPPORTUNITY_LOCOMOTION_BASEPATH + filename for filename in OPPORTUNITY_LOCOMOTION_FILENAMES}
@@ -155,6 +162,9 @@ OPPORTUNITY_LOCOMOTION = {
 # Opportunity Gestures
 
 ## Opportunity Gestures filepaths
+
+OPPORTUNITY_GESTURES_BEST_Simple_CNN = MODELS_BASEPATH + "OPPORTUNITY_GESTURES-Simple_CNN-LEARNING_RATE-0.001_best_wf1_0.8907_epoch_9_iteration_349.pt"
+OPPORTUNITY_GESTURES_BEST_CNN_IMU = MODELS_BASEPATH + "OPPORTUNITY_GESTURES-CNN_IMU-LEARNING_RATE-0.001_best_wf1_0.8948_epoch_9_iteration_249.pt"
 
 OPPORTUNITY_GESTURES_BASEPATH = DATASETS_BASEPATH + "Opportunity_Gestures/dataset/"
 OPPORTUNITY_GESTURES_FILENAMES = {f"S{i}-ADL{j}.dat" for i in range(1,5) for j in range(1,6)} | {f"S{i}-Drill.dat" for i in range(1,5)}
