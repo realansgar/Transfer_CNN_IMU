@@ -166,6 +166,7 @@ def simple_cnn_freeze(source_dataset, target_dataset):
       config_dict["MODEL"] = "Simple_CNN"
       config_dict["TRAIN_SET_FILEPATH"] = train_filepath
       config_dict["VAL_SET_FILEPATH"] = val_filepath
+      config_dict["LEARNING_RATE"] = config_dict["Simple_CNN_LEARNING_RATE"]
       config_dict["FREEZE"] = freeze
       state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, "Simple_CNN", freeze)
       print(f"-----{config_dict['NAME']}-----")
