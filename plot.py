@@ -9,8 +9,8 @@ def plot(filepath):
   train_eval = eval_dict["train"]
   val_eval = eval_dict["val"]
   # [{"a": [1,2], "b": [3,4]}, {"a": [5,6], "b": [7,8]}] -> {"a": [1,2,5,6], "b": [3,4,7,8]} losing information about epochs
-  train_eval = {key: [item for sublist in [d[key] for d in train_eval] for item in sublist] for key in train_eval[0]}
-  val_eval = {key: [item for sublist in [d[key] for d in val_eval] for item in sublist] for key in val_eval[0]}
+  train_eval = {key: [item for sublist in [d[key] for d in train_eval] for item in sublist] for key in train_eval[0] if all(substr not in key for substr in ["class", "mean", "conf"])}
+  val_eval = {key: [item for sublist in [d[key] for d in val_eval] for item in sublist] for key in val_eval[0] if all(substr not in key for substr in ["class", "mean", "conf"])}
   fig, axs = plt.subplots(len(train_eval) // 2, 2)
   axs = axs.flatten()
   for (i, key) in enumerate(train_eval):
