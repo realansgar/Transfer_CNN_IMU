@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from copy import deepcopy
+from itertools import chain
 from tqdm import tqdm, trange
 import CNN
 from datasets import HARWindows
@@ -16,8 +17,6 @@ class Trainer():
 
     if c.DETERMINISTIC:
       torch.manual_seed(42)
-    if conv_lr is None:
-      conv_lr = self.LEARNING_RATE
 
     self.Selected_CNN = getattr(CNN, self.MODEL)
     self.net = self.Selected_CNN(self.config).to(DEVICE)
@@ -36,13 +35,23 @@ class Trainer():
         param.requires_grad = False
 
     self.criterion = torch.nn.CrossEntropyLoss()
+
+    if conv_lr is None:
+      conv_lr = self.LEARNING_RATE
+
+    all_params = set(self.net.parameters())
+    if self.Selected_CNN == CNN.CNN_IMU:
+      conv_params = set(chain(*[imu_branch.convolutional_layers.parameters() for imu_branch in self.net.imu_branches]))
+    elif self.Selected_CNN == CNN.Simple_CNN:
+      conv_params = set(self.net.cnn_imu_branch.convolutional_layers.parameters())
+    not_conv_params = all_params - conv_params
     self.optimizer = torch.optim.RMSprop([
       {
-        "params": [v for k, v in self.net.state_dict().items() if "convolutional" in k],
+        "params": list(conv_params),
         "lr": conv_lr
       },
       {
-        "params": [v for k, v in self.net.state_dict().items() if "convolutional" not in k],
+        "params": list(not_conv_params),
         "lr": self.LEARNING_RATE
       },
     ], alpha=self.RMS_DECAY)
