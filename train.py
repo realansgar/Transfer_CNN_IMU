@@ -38,11 +38,11 @@ class Trainer():
     self.criterion = torch.nn.CrossEntropyLoss()
     self.optimizer = torch.optim.RMSprop([
       {
-        "params": [v for k, v in self.net.state_dict().items() if "convolutional" in v],
+        "params": [v for k, v in self.net.state_dict().items() if "convolutional" in k],
         "lr": conv_lr
       },
       {
-        "params": [v for k, v in self.net.state_dict().items() if "convolutional" not in v],
+        "params": [v for k, v in self.net.state_dict().items() if "convolutional" not in k],
         "lr": self.LEARNING_RATE
       },
     ], alpha=self.RMS_DECAY)
