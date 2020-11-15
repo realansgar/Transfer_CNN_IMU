@@ -10,12 +10,15 @@ from config import DEVICE, EVAL_PERIOD
 
 # pylint: disable=no-member
 class Trainer():
-  def __init__(self, config, pretrained_state_dict={}, frozen_param_idxs=[]):
+  def __init__(self, config, pretrained_state_dict={}, frozen_param_idxs=[], conv_lr=None):
     self.config = config
     list(map(lambda item: setattr(self, *item), config.items()))
 
     if c.DETERMINISTIC:
       torch.manual_seed(42)
+    if conv_lr is None:
+      conv_lr = self.LEARNING_RATE
+
     self.Selected_CNN = getattr(CNN, self.MODEL)
     self.net = self.Selected_CNN(self.config).to(DEVICE)
     
@@ -33,7 +36,16 @@ class Trainer():
         param.requires_grad = False
 
     self.criterion = torch.nn.CrossEntropyLoss()
-    self.optimizer = torch.optim.RMSprop(self.net.parameters(), lr=self.LEARNING_RATE, alpha=self.RMS_DECAY)
+    self.optimizer = torch.optim.RMSprop([
+      {
+        "params": [v for k, v in self.net.state_dict().items() if "convolutional" in v],
+        "lr": conv_lr
+      },
+      {
+        "params": [v for k, v in self.net.state_dict().items() if "convolutional" not in v],
+        "lr": self.LEARNING_RATE
+      },
+    ], alpha=self.RMS_DECAY)
 
     if self.NOISE:
       self.noise = torch.distributions.Normal(0, self.NOISE)

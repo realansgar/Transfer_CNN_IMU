@@ -17,7 +17,7 @@ else:
 # Filepaths
 
 TEST_BASEPATH = "/data/ozeino/test/"
-LOGS_BASEPATH = "/data/ozeino/logs_freeze/"
+LOGS_BASEPATH = "/data/ozeino/logs_freeze_lr/"
 MODELS_BASEPATH = "/data/ozeino/models/"
 DATASETS_BASEPATH = "/data/ozeino/"
 

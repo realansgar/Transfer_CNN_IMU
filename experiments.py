@@ -170,7 +170,7 @@ def simple_cnn_freeze(source_dataset, target_dataset):
       config_dict["FREEZE"] = freeze
       state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, "Simple_CNN", freeze)
       print(f"-----{config_dict['NAME']}-----")
-      trainer = Trainer(config_dict, state_dict, freeze_idx)
+      trainer = Trainer(config_dict, state_dict, freeze_idx, 10**-5)
       eval_dict = trainer.train()
       results.append(eval_dict)
       eval_dict_acc, eval_dict_wf1 = eval_dict
