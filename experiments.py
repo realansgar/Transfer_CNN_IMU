@@ -38,7 +38,7 @@ def save_best_result(results, name, key):
 def filter_state_dict(state_dict):
   return {k: v for k, v in state_dict.items() if "convolutional_layers" in k}
 
-def determine_frozen_param_idxs(state_dict, layer_num):
+def determine_param_idx(state_dict, layer_num, keys=False):
   state_dict = filter_state_dict(state_dict)
   keys = list(state_dict.keys())
   conv_layer_idx_pattern = re.compile(r".*?(\d)\D*$") # matches the last digit to determine the conv_layer idx
@@ -49,6 +49,8 @@ def determine_frozen_param_idxs(state_dict, layer_num):
     conv_layers[idx].append(k)
   freeze_layer_idxs = list(conv_layers.keys())[:layer_num]
   freeze_keys = list(chain(*[conv_layers[idx] for idx in freeze_layer_idxs]))
+  if keys:
+    return freeze_keys
   freeze_idx = [keys.index(freeze_key) for freeze_key in freeze_keys]
   return sorted(freeze_idx)
 
@@ -131,7 +133,7 @@ def all_hyperparameters():
   order_picking_b_learning_rate()
 
 
-def base_transfer(source_dataset, target_dataset, model, freeze=0, mapping=None):
+def base_transfer(source_dataset, target_dataset, model, freeze=0, mapping=None, layer_num=None):
   filepath = getattr(config, f"{source_dataset}_BEST_{model}")
   eval_dict = torch.load(filepath, map_location=DEVICE)
   state_dict = eval_dict["net"].state_dict()
@@ -152,7 +154,10 @@ def base_transfer(source_dataset, target_dataset, model, freeze=0, mapping=None)
         new_state_dict.update({k.replace(str(source_idx), str(target_idx), 1): v for k, v in imu_branch_state_dict.items()})
     state_dict = new_state_dict
   
-  freeze_idx = determine_frozen_param_idxs(state_dict, freeze)
+  freeze_idx = determine_param_idx(state_dict, freeze)
+  if layer_num is not None:
+    keys = determine_param_idx(state_dict, layer_num, keys=True)
+    state_dict = {k: v for k, v in state_dict.items() if k in keys}
   return state_dict, freeze_idx
 
 def simple_cnn_freeze(source_dataset, target_dataset):
@@ -168,9 +173,9 @@ def simple_cnn_freeze(source_dataset, target_dataset):
       config_dict["VAL_SET_FILEPATH"] = val_filepath
       config_dict["LEARNING_RATE"] = config_dict["Simple_CNN_LEARNING_RATE"]
       config_dict["FREEZE"] = freeze
-      state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, "Simple_CNN", freeze)
+      state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, "Simple_CNN", freeze=freeze)
       print(f"-----{config_dict['NAME']}-----")
-      trainer = Trainer(config_dict, state_dict, freeze_idx, 10**-5)
+      trainer = Trainer(config_dict, state_dict, freeze_idx)
       eval_dict = trainer.train()
       results.append(eval_dict)
       eval_dict_acc, eval_dict_wf1 = eval_dict
@@ -178,10 +183,38 @@ def simple_cnn_freeze(source_dataset, target_dataset):
       print("WF1: ", eval_dict_wf1["best_val"], f"epoch: {eval_dict_wf1['best_epoch']}, iteration: {eval_dict_wf1['best_iteration']}\n")
     save_best_result(results, name, "FREEZE")
 
+def simple_cnn_layer_num(source_dataset, target_dataset):
+  for train_filepath, val_filepath in getattr(config, f"{target_dataset}_TRAIN_VAL_SET_FILEPATHS"):
+    subject = subject_re.findall(val_filepath)[0]
+    results = []
+    for layer_num in range(1,4):
+      name = f"{source_dataset}-{target_dataset}-Simple_CNN-{subject}-LAYER_NUM"
+      config_dict = getattr(config, target_dataset).copy()
+      config_dict["NAME"] = f"{name}-{layer_num}"
+      config_dict["MODEL"] = "Simple_CNN"
+      config_dict["TRAIN_SET_FILEPATH"] = train_filepath
+      config_dict["VAL_SET_FILEPATH"] = val_filepath
+      config_dict["LEARNING_RATE"] = config_dict["Simple_CNN_LEARNING_RATE"]
+      config_dict["LAYER_NUM"] = layer_num
+      state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, "Simple_CNN", layer_num=layer_num)
+      print(f"-----{config_dict['NAME']}-----")
+      trainer = Trainer(config_dict, state_dict, freeze_idx)
+      eval_dict = trainer.train()
+      results.append(eval_dict)
+      eval_dict_acc, eval_dict_wf1 = eval_dict
+      print("ACC: ", eval_dict_acc["best_val"], f"epoch: {eval_dict_acc['best_epoch']}, iteration: {eval_dict_acc['best_iteration']}\n")
+      print("WF1: ", eval_dict_wf1["best_val"], f"epoch: {eval_dict_wf1['best_epoch']}, iteration: {eval_dict_wf1['best_iteration']}\n")
+    save_best_result(results, name, "LAYER_NUM")
+
 def all_simple_cnn_freeze():
   for source_dataset in ["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES"]:
     for target_dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
       simple_cnn_freeze(source_dataset, target_dataset)
+
+def all_simple_cnn_layer_num():
+  for source_dataset in ["PAMAP2", "OPPORTUNITY_LOCOMOTION", "OPPORTUNITY_GESTURES"]:
+    for target_dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
+      simple_cnn_layer_num(source_dataset, target_dataset)
 
 
 if __name__ == "__main__":
