@@ -170,6 +170,7 @@ def preprocess_ORDER_PICKING_A(normalize=True, write=False):
     data = np.loadtxt(filepath)
     data = data[:,1:]
     data = delete_labels(data, ORDER_PICKING_A_LABEL_MASK)
+    data = downsample_data(data, 100, 30)
     data = remap_labels(data, ORDER_PICKING_A_LABEL_REMAPPING)
     data[np.isnan(data)] = 0
     if normalize:
@@ -188,6 +189,7 @@ def preprocess_ORDER_PICKING_B(normalize=True, write=False):
     data = np.loadtxt(filepath)
     data = data[:,1:]
     data = delete_labels(data, ORDER_PICKING_B_LABEL_MASK)
+    data = downsample_data(data, 100, 30)
     data = remap_labels(data, ORDER_PICKING_B_LABEL_REMAPPING)
     data[np.isnan(data)] = 0
     if normalize:
