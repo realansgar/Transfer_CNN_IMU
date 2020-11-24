@@ -117,13 +117,13 @@ def order_picking_a_epochs():
   base_hyperparameter_order_picking("ORDER_PICKING_A", "EPOCHS", [25,20,15])
 
 def order_picking_a_learning_rate():
-  base_hyperparameter_order_picking("ORDER_PICKING_A", "LEARNING_RATE", [10**-4, 10**-5, 10**-6, 10**-7])
+  base_hyperparameter_order_picking("ORDER_PICKING_A", "LEARNING_RATE", [10**-3, 10**-4, 10**-5])
 
 def order_picking_b_epochs():
   base_hyperparameter_order_picking("ORDER_PICKING_B", "EPOCHS", [25,20,15])
 
 def order_picking_b_learning_rate():
-  base_hyperparameter_order_picking("ORDER_PICKING_B", "LEARNING_RATE", [10**-4, 10**-5, 10**-6, 10**-7])
+  base_hyperparameter_order_picking("ORDER_PICKING_B", "LEARNING_RATE", [10**-3, 10**-4, 10**-5])
 
 def all_hyperparameters():
   pamap2_learning_rate()
