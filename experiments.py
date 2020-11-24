@@ -38,7 +38,7 @@ def save_best_result(results):
 def filter_state_dict(state_dict):
   return {k: v for k, v in state_dict.items() if "convolutional_layers" in k}
 
-def determine_param_idx(state_dict, layer_num, keys=False):
+def determine_param_idx(state_dict, layer_num, return_keys=False):
   state_dict = filter_state_dict(state_dict)
   keys = list(state_dict.keys())
   conv_layer_idx_pattern = re.compile(r".*?(\d)\D*$") # matches the last digit to determine the conv_layer idx
@@ -49,7 +49,7 @@ def determine_param_idx(state_dict, layer_num, keys=False):
     conv_layers[idx].append(k)
   freeze_layer_idxs = list(conv_layers.keys())[:layer_num]
   freeze_keys = list(chain(*[conv_layers[idx] for idx in freeze_layer_idxs]))
-  if keys:
+  if return_keys:
     return freeze_keys
   freeze_idx = [keys.index(freeze_key) for freeze_key in freeze_keys]
   return sorted(freeze_idx)
@@ -156,7 +156,7 @@ def base_transfer(source_dataset, target_dataset, model, freeze=0, mapping=None,
   
   freeze_idx = determine_param_idx(state_dict, freeze)
   if layer_num is not None:
-    keys = determine_param_idx(state_dict, layer_num, keys=True)
+    keys = determine_param_idx(state_dict, layer_num, return_keys=True)
     state_dict = {k: v for k, v in state_dict.items() if k in keys}
   return state_dict, freeze_idx
 
