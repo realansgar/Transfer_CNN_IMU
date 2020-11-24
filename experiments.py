@@ -212,7 +212,7 @@ def simple_cnn_freeze_layer_num(source_dataset, target_dataset):
     results = []
     name = f"{source_dataset}-{target_dataset}-Simple_CNN-{subject}"
     for layer_num in range(1,5):
-      for freeze in range(5):
+      for freeze in range(layer_num + 1):
         config_dict = getattr(config, target_dataset).copy()
         config_dict["NAME"] = f"{name}-LAYER_NUM-{layer_num}-FREEZE-{freeze}"
         config_dict["MODEL"] = "Simple_CNN"
