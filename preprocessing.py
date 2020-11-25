@@ -265,9 +265,10 @@ def get_dataset_statistics(dataset_name):
     x, y = np.load(path)["data_x"], np.load(path)["data_y"]
     y_count = np.bincount(y)
     y_p = np.array([100 * count / len(y) for count in y_count])
+    y_ord = np.flip([np.where(y_count==c)[0] for c in np.sort(y_count)])
     filename = os.path.basename(path)
     print(f"{filename}: {x.shape[0]} windows of shape {(x.shape[1], x.shape[2])}, {np.max(y) + 1} classes")
-    for i in range(len(y_count)):
+    for i in y_ord:
       print(f"{dataset_label_names[i]}: {y_count[i]} {y_p[i]:.2f}")
 
 
