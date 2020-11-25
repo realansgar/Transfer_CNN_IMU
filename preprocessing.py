@@ -260,10 +260,15 @@ def preprocess_PAMAP2(normalize=True, write=False):
 
 def get_dataset_statistics(dataset_name):
   dataset_path = globals()[f"{dataset_name}_BASEPATH"]
+  dataset_label_names = globals()[f"{dataset_name}_LABEL_NAMES"]
   for path in iglob(dataset_path + "*.npz"):
     x, y = np.load(path)["data_x"], np.load(path)["data_y"]
+    y_count = np.bincount(y)
+    y_p = np.array([100 * count / len(y) for count in y_count])
     filename = os.path.basename(path)
     print(f"{filename}: {x.shape[0]} windows of shape {(x.shape[1], x.shape[2])}, {np.max(y) + 1} classes")
+    for i in range(len(y_count)):
+      print(f"{dataset_label_names[i]}: {y_count[i]} {y_p[i]:.2f}")
 
 
 if __name__ == "__main__":
