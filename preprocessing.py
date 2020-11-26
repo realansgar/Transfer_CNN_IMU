@@ -269,7 +269,7 @@ def get_dataset_statistics(dataset_name):
     filename = os.path.basename(path)
     print(f"{filename}: {x.shape[0]} windows of shape {(x.shape[1], x.shape[2])}, {np.max(y) + 1} classes")
     for i in y_ord:
-      print(f"{dataset_label_names[i]}: {y_count[i]} {y_p[i]:.2f}")
+      print(f"{dataset_label_names[i]}: {y_count[i]}")
 
 
 if __name__ == "__main__":
