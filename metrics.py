@@ -1,6 +1,8 @@
 import torch
 from torch.functional import F
 from config import DEVICE, MAX_BATCH_SIZE
+from sklearn.metrics import confusion_matrix
+import numpy as np
 
 def class_confusion(pred_y, data_y, num_classes):
   tp = torch.zeros(num_classes, device=DEVICE)
@@ -18,11 +20,6 @@ def class_confusion(pred_y, data_y, num_classes):
     fn[c] = torch.sum(data_y[not_selected] == c)
   
   return tp, tn, fp, fn
-
-
-def confusion(pred_y, data_y, num_classes):
-  class_conf = class_confusion(pred_y, data_y, num_classes)
-  return tuple(map(torch.sum, class_conf))
 
 
 def class_precision_recall(pred_y, data_y, num_classes):
@@ -114,6 +111,7 @@ def evaluate_net(net, criterion, batch, num_classes):
     weighted_acc = accuracy(pred_y, data_y, num_classes, weighted=True)
     f1 = f1_score(pred_y, data_y, num_classes)
     weighted_f1 = f1_score(pred_y, data_y, num_classes, weighted=True)
+    confusion = np.transpose(confusion_matrix(data_y.numpy(), pred_y.numpy(), normalize="true"))
 
     return {
       "loss": loss,
@@ -127,6 +125,7 @@ def evaluate_net(net, criterion, batch, num_classes):
       "weighted_recall": weighted_recall,
       "class_f1": class_f1,
       "f1": f1,
-      "weighted_f1": weighted_f1
+      "weighted_f1": weighted_f1,
+      "confusion": confusion
     }
     

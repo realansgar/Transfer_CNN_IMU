@@ -12,23 +12,15 @@ import metrics
 
 subject_re = re.compile(r"subject\d\d\d")
 
-def log_mean_conf(filepaths):
-  eval_dicts = [torch.load(filepath, map_location=config.DEVICE) for filepath in filepaths]
-  _, mean, conf = get_aggr_mean_conf(eval_dicts, key="best_val")
-  print(mean, conf)
-
-def get_aggr_mean_conf(eval_dicts, key="test"):
-  result_dict = {k: [eval_dict[key][k].cpu() for eval_dict in eval_dicts] for k in eval_dicts[0][key]}
-  result_dict_mean = {f"{k}_mean": np.mean(v) for k, v in result_dict.items() if "class_" not in k}
-  result_dict_conf = ({f"{k}_conf": np.mean(v) - st.t.interval(0.95, len(v)-1, loc=np.mean(v), scale=st.sem(v))[0] for k, v in result_dict.items() if "class_" not in k})
-  result_dict.update(result_dict_mean)
-  result_dict.update(result_dict_conf)
-  return result_dict, result_dict_mean, result_dict_conf
-
 def log(filepaths):
   for filepath in filepaths:
     eval_dict = torch.load(filepath, map_location=config.DEVICE)
-    print({k: v for k, v in eval_dict.items() if k not in ["net", "train", "val"]})
+    val_set = HARWindows(eval_dict["config"]["VAL_SET_FILEPATH"])
+    val_dataloader = DataLoader(val_set, batch_size=len(val_set))
+    eval_val = metrics.evaluate_net(eval_dict["net"], torch.nn.CrossEntropyLoss(), next(iter(val_dataloader)), eval_dict["config"]["NUM_CLASSES"])
+    print(eval_dict["config"]["NAME"])
+    print(f"wF1: {eval_dict['best_val']['weighted_f1']}")
+    print(eval_val["confusion"])
 
 def test_filepath(filepaths):
   for filepath in filepaths:

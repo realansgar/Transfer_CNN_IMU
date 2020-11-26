@@ -7,6 +7,6 @@ dependencies:
   - tqdm
   - python=3.8
   - cudatoolkit=10.1
-  - scipy
+  - scikit-learn
 prefix: /home/oskar/anaconda3/envs/transfer_cnn_imu
 
