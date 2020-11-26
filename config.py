@@ -86,7 +86,7 @@ PAMAP2 = {
   "WINDOW_SIZE": 100,
   "STEP_SIZE": 22,
   "IMUS": 3,
-  "BRANCHES": ["HAND", "CHEST", "ANKLE"],
+  "BRANCHES": ["WRIST", "CHEST", "ANKLE"],
 
   "EPOCHS": 12,
   "BATCH_SIZE": 50,
@@ -293,7 +293,7 @@ ORDER_PICKING_A = {
   "WINDOW_SIZE": 100,
   "STEP_SIZE": 1,
   "IMUS": 3,
-  "BRANCHES": ["L-HAND", "R-HAND", "TORSO"],
+  "BRANCHES": ["L-WRIST", "R-WRIST", "TORSO"],
 
   "EPOCHS": 20,
   "BATCH_SIZE": 100,
@@ -349,7 +349,7 @@ ORDER_PICKING_B = {
   "WINDOW_SIZE": 100,
   "STEP_SIZE": 1,
   "IMUS": 3,
-  "BRANCHES": ["L-HAND", "R-HAND", "TORSO"],
+  "BRANCHES": ["L-WRIST", "R-WRIST", "TORSO"],
 
   "EPOCHS": 20,
   "BATCH_SIZE": 100,
