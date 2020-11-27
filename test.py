@@ -2,7 +2,6 @@ from argparse import ArgumentParser, FileType
 import os
 import re
 import numpy as np
-from scipy import stats as st
 import torch
 from torch.utils.data import DataLoader
 from train import Trainer
@@ -18,6 +17,7 @@ def log(filepaths):
     val_set = HARWindows(eval_dict["config"]["VAL_SET_FILEPATH"])
     val_dataloader = DataLoader(val_set, batch_size=len(val_set))
     eval_val = metrics.evaluate_net(eval_dict["net"], torch.nn.CrossEntropyLoss(), next(iter(val_dataloader)), eval_dict["config"]["NUM_CLASSES"])
+    np.set_printoptions(precision=4, linewidth=200, suppress=True)
     print(eval_dict["config"]["NAME"])
     print(f"wF1: {eval_dict['best_val']['weighted_f1']}")
     print(eval_val["confusion"])

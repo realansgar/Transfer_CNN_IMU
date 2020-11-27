@@ -111,7 +111,7 @@ def evaluate_net(net, criterion, batch, num_classes):
     weighted_acc = accuracy(pred_y, data_y, num_classes, weighted=True)
     f1 = f1_score(pred_y, data_y, num_classes)
     weighted_f1 = f1_score(pred_y, data_y, num_classes, weighted=True)
-    confusion = np.transpose(confusion_matrix(data_y.numpy(), pred_y.numpy(), normalize="true"))
+    confusion = np.transpose(confusion_matrix(data_y.cpu().numpy(), pred_y.cpu().numpy(), normalize="true", labels=range(num_classes)))
 
     return {
       "loss": loss,
