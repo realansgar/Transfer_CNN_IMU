@@ -246,6 +246,59 @@ def all_simple_cnn_freeze_layer_num():
     for target_dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
       simple_cnn_freeze_layer_num(source_dataset, target_dataset)
 
+def cnn_imu_mapping(source_dataset, target_dataset, mappings):
+  for train_filepath, val_filepath in getattr(config, f"{target_dataset}_TRAIN_VAL_SET_FILEPATHS"):
+    subject = subject_re.findall(val_filepath)[0]
+    results = []
+    name = f"{source_dataset}-{target_dataset}-CNN_IMU-{subject}"
+    for mapping_name, mapping in mappings:
+      config_dict = getattr(config, target_dataset).copy()
+      config_dict["NAME"] = f"{name}-{mapping_name}"
+      config_dict["MODEL"] = "CNN_IMU"
+      config_dict["TRAIN_SET_FILEPATH"] = train_filepath
+      config_dict["VAL_SET_FILEPATH"] = val_filepath
+      config_dict["MAPPING"] = mapping
+      config_dict["MAPPING_NAME"] = mapping_name
+      config_dict["FREEZE"] = config_dict[f"{source_dataset}_FREEZE"]
+      config_dict["LAYER_NUM"] = config_dict[f"{source_dataset}_LAYER_NUM"]
+      state_dict, freeze_idx = base_transfer(source_dataset, target_dataset, "CNN_IMU", freeze=config_dict["FREEZE"], layer_num=config_dict["LAYER_NUM"], mapping=mapping)
+      print(f"-----{config_dict['NAME']}-----")
+      trainer = Trainer(config_dict, state_dict, freeze_idx)
+      eval_dict = trainer.train()
+      results.append(eval_dict)
+      eval_dict_acc, eval_dict_wf1 = eval_dict
+      print("ACC: ", eval_dict_acc["best_val"], f"epoch: {eval_dict_acc['best_epoch']}, iteration: {eval_dict_acc['best_iteration']}\n")
+      print("WF1: ", eval_dict_wf1["best_val"], f"epoch: {eval_dict_wf1['best_epoch']}, iteration: {eval_dict_wf1['best_iteration']}\n")
+    save_best_result(results)
+
+def pamap2_cnn_imu_mapping():
+  mappings = [
+    ("compatible", {"WRIST": ["L-WRIST", "R-WRIST"], "CHEST": ["TORSO"]}),
+    ("ankle_torso", {"WRIST": ["L-WRIST", "R-WRIST"], "ANKLE": ["TORSO"]}),
+    ("ankle_l-wrist", {"WRIST": ["R-WRIST"], "ANKLE": ["L-WRIST"], "CHEST": ["TORSO"]})
+  ]
+  for target_dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
+    cnn_imu_mapping("PAMAP2", target_dataset, mappings)
+
+opportunity_mappings = [
+    ("lower_arm", {"LLA": ["L-WRIST"], "RLA": ["R-WRIST"], "BACK": ["TORSO"]}),
+    ("upper_arm", {"LUA": ["L-WRIST"], "RUA": ["R-WRIST"], "BACK": ["TORSO"]}),
+    ("accs_torso", {"LLA": ["R-WRIST"], "RLA": ["L-WRIST"], "ACCS": ["TORSO"]}),
+    ("shoes_wrist", {"L-SHOE": ["L-WRIST"], "R-SHOE": ["R-WRIST"], "BACK": ["TORSO"]})
+  ]
+
+def opportunity_locomotion_cnn_imu_mapping():
+  for target_dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
+    cnn_imu_mapping("OPPORTUNITY_LOCOMOTION", target_dataset, opportunity_mappings)
+
+def opportunity_gestures_cnn_imu_mapping():
+  for target_dataset in ["ORDER_PICKING_A", "ORDER_PICKING_B"]:
+    cnn_imu_mapping("OPPORTUNITY_GESTURES", target_dataset, opportunity_mappings)
+
+def all_cnn_imu_mapping():
+  pamap2_cnn_imu_mapping()
+  opportunity_locomotion_cnn_imu_mapping()
+  opportunity_gestures_cnn_imu_mapping()
 
 if __name__ == "__main__":
   parser = ArgumentParser(description="Start predefined experiments")
