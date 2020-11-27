@@ -9,7 +9,7 @@ dependencies:
   - tqdm
   - autopep8
   - python=3.8
-  - matplotlib
+  - matplotlib=3.3.*
   - scikit-learn
 prefix: /home/oskar/anaconda3/envs/transfer_cnn_imu
 
