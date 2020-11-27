@@ -257,6 +257,7 @@ def cnn_imu_mapping(source_dataset, target_dataset, mappings):
       config_dict["MODEL"] = "CNN_IMU"
       config_dict["TRAIN_SET_FILEPATH"] = train_filepath
       config_dict["VAL_SET_FILEPATH"] = val_filepath
+      config_dict["LEARNING_RATE"] = config_dict["CNN_IMU_LEARNING_RATE"]
       config_dict["MAPPING"] = mapping
       config_dict["MAPPING_NAME"] = mapping_name
       config_dict["FREEZE"] = config_dict[f"{source_dataset}_FREEZE"]
