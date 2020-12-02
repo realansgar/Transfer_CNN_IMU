@@ -66,7 +66,7 @@ def make_confusion_matrix(cf,
         group_labels = blanks
 
     if count:
-        group_counts = ["{0:.2%}\n".format(value) for value in cf.flatten()]
+        group_counts = ["{0:.1%}\n".format(value) for value in cf.flatten()]
     else:
         group_counts = blanks
 
@@ -141,7 +141,7 @@ def log_confusion(dataset, filepaths):
     save_filepath = None
     if args.s:
       save_filepath = os.path.splitext(filepath)[0] + ".pdf"
-    make_confusion_matrix(eval_val["confusion"], figsize=(14,7), categories=getattr(config, dataset + "_LABEL_NAMES").values(), filepath=save_filepath)
+    make_confusion_matrix(eval_val["confusion"], figsize=(12,7), categories=getattr(config, dataset + "_LABEL_NAMES").values(), filepath=save_filepath)
 
 
 if __name__ == "__main__":
